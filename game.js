@@ -14,9 +14,13 @@
 /** CONFIG ****************************************************************************************/
 
 
-CONFIG = {
-
-};
+PLAYER_WIDTH     = 50;   // in pixels
+PLAYER_HEIGHT    = 20;  
+PLAYER_MAX_SPEED = 350;  // in pixels per second
+PLAYER_ACCEL     = 4;    // seconds until max speed
+PLAYER_FRICTION  = 4;    // seconds until 0 speed
+PLAYER_ROT_RATE  = 720;  // rotation rate in degrees per second
+PLAYER_COLOR     = 'white';
 
 
 /** ENTITIES **************************************************************************************/
@@ -203,38 +207,51 @@ function spawnPlayer() {
         .attr( {
             x: 100,
             y: 100,
-            w: 50,
-            h: 20
+            w: PLAYER_WIDTH,
+            h: PLAYER_HEIGHT
         } )
-        .color( 'white' )
-        .origin( 'center' );
+        .color( PLAYER_COLOR );
+
+    player.origin( 'center' );
 
     player.bind( 'UpdateEntity', function( diffsecs ) {
 
         // Handle rotation
 
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.LEFT_ARROW ) ) {
-            this.diffr -= 720 * diffsecs;
+            
+            this.diffr -= PLAYER_ROT_RATE * diffsecs;
+
         } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.RIGHT_ARROW ) ) {
-            this.diffr += 720 * diffsecs;
+            
+            this.diffr += PLAYER_ROT_RATE * diffsecs;
+
         } else {
+            
             // Otherwise decay the rotation
-            this.diffr *= 1.0 - ( 2.0 * diffsecs );  // 720/360 same as above
+            this.diffr *= 1.0 - ( PLAYER_FRICTION * diffsecs );  // 720/360 same as above
+
         }
 
-        // Handle velocity/movement
+        // Handle velocity & momentum
 
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.UP_ARROW ) ) {
-            this.diffv += 350*4 * diffsecs;
+            
+            this.diffv += PLAYER_MAX_SPEED * PLAYER_ACCEL * diffsecs;
+
         } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
-            this.diffv += -350*4 * diffsecs;
+            
+            this.diffv += -PLAYER_MAX_SPEED * PLAYER_ACCEL * diffsecs;
+
         } else {
+
             // Otherwise decay velocity
-            this.diffv *= 1.0 - ( 3.0 * diffsecs );
+            this.diffv *= 1.0 - ( PLAYER_FRICTION * diffsecs );
+
         }
 
-        this.diffv = Math.min( this.diffv, 350 );
-        this.diffv = Math.max( this.diffv, -350 );
+        this.diffv = Math.min( this.diffv, PLAYER_MAX_SPEED );
+        this.diffv = Math.max( this.diffv, -PLAYER_MAX_SPEED );
 
         // Handle shooting
 
