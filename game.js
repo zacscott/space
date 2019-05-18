@@ -60,8 +60,9 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 
 // SPAWN RATES CONFIG  =============================================================================
 
-SPAWN_INTERVAL    = 1.23  // enemy spawn rate in seconds
-SPAWN_HUNTER_PROB = 0.1   // probability a hunter will spawn along with normal enemy
+SPAWN_INTERVAL    = 1.23;  // enemy spawn rate in seconds
+SPAWN_HUNTER_PROB = 0.1;   // probability a hunter will spawn along with normal enemy
+SPAWN_HUNTER_MAX  = 2;     // Max number of hunters to spawn at any given time 
 
 // END SPAWN RATES CONFIG  =========================================================================
 
@@ -70,6 +71,9 @@ SPAWN_HUNTER_PROB = 0.1   // probability a hunter will spawn along with normal e
 
 
 var score = 0;  // the players score
+
+
+var playerEntity = undefined; // the player entity object
 
 
 /** ENTITIES **************************************************************************************/
@@ -593,13 +597,18 @@ function gameHeight() {
 }
 
 function gamePlayerEntity() {
-    return window.playerEntity;
+    return playerEntity;
 }
 
 function gameStart() {
     Crafty.log( 'Game: starting' );
 
-    window.playerEntity = spawnPlayer();
+    playerEntity = spawnPlayer();
+
+    // Spawn the first hunter
+    // setTimeout( function() {  // NOTE I think this might be a bit too harsh
+    //     spawnHunter();
+    // }, 1000 );
 
     // Start up the game loop
     // Run one immediately then start it up on a timer
@@ -628,6 +637,12 @@ function gameRestart() {
 
 }
 
+function gameScore() {
+
+    return score;
+
+}
+
 function gameScorePoints( points ) {
 
     score += points;
@@ -648,10 +663,15 @@ function gameLoop() {
 
     spawnEnemy();
 
-    // Spawn hunter randomly
+    // Spawn hunter randomly, up to the maximum
     var dice = parseInt( Math.random() * ( 1 / SPAWN_HUNTER_PROB ) );
     if ( ! dice ) {
-        spawnHunter();
+        
+        var hunters = Crafty( 'Hunter' );
+        if ( hunters.length < SPAWN_HUNTER_MAX ) {
+            spawnHunter();
+        }
+
     }
 
 }
