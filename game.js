@@ -32,10 +32,10 @@ ENEMY_WIDTH        = 50;    // in pixels
 ENEMY_HEIGHT       = 20;  
 
 ENEMY_SPD_MAX      = 35;    // in pixels per second
-ENEMY_SHOOT_SPD    = 0.66;  // shots per second
+ENEMY_SHOOT_SPD    = 0.33;  // shots per second
 
 ENEMY_SPD_MAX      = 60;    // in pixels per second
-HUNTER_SHOOT_SPD   = 0.33;  // shots per second
+HUNTER_SHOOT_SPD   = 0.25;  // shots per second
 
 ENEMY_KILL_POINTS  = 250;   // points awarded for killing a normal enemy  
 HUNTER_KILL_POINTS = 1500;  // points awarded for killing a hunter
