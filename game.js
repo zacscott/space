@@ -1,6 +1,5 @@
 ( function() {
 
-// TODO particle emitters on destroy
 
 /** CONFIG ****************************************************************************************/
 
@@ -192,7 +191,6 @@ function spawnExplosion( ent ) {
     if ( matches ) {
         color = [ matches[1], matches[2], matches[3], 1.0 ];
     }
-    // console.log( color );
 
     // Configure particle emitter to explode
     particles.particles( {
@@ -334,8 +332,6 @@ function spawnEnemy() {
         if ( undefined != hit.parent && 'Player' == hit.parent.type ) {
             Crafty.log( 'Enemy: killed' );
 
-            // TODO particle emitter explosion
-
             spawnExplosion( this );
             
             gameScorePoints( ENEMY_KILL_POINTS );
@@ -431,7 +427,7 @@ function spawnHunter() {
         if ( undefined != hit.parent && 'Player' == hit.parent.type ) {
             Crafty.log( 'Hunter: killed' );
 
-            // TODO particle emitter explosion this.explode
+            spawnExplosion( this );
             
             gameScorePoints( HUNTER_KILL_POINTS );
 
@@ -545,8 +541,6 @@ function spawnPlayer() {
 
     player.bind( 'Hit', function( hit ) {
         Crafty.log( 'Player: killed' );
-
-        // TODO particle emitter explosion
         
         Crafty.audio.play( 'playerExplode' );
 
