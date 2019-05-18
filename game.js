@@ -59,7 +59,7 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 
 // SPAWN RATES CONFIG  =============================================================================
 
-SPAWN_INTERVAL    = 1.23;  // enemy spawn rate in seconds
+SPAWN_INTERVAL    = 1.73;  // enemy spawn rate in seconds
 SPAWN_HUNTER_PROB = 0.1;   // probability a hunter will spawn along with normal enemy
 SPAWN_HUNTER_MAX  = 2;     // Max number of hunters to spawn at any given time 
 
@@ -182,7 +182,7 @@ function spawnExplosion( ent ) {
     
     particles.x = ent.x;
     particles.y = ent.y;
-    particles.w = 100; particles.h = 200;
+    particles.w = 500; particles.h = 500;
 
     // parse the entities color, so we can match it
     var color = [ 255, 255, 255, 1.0 ];
@@ -195,21 +195,21 @@ function spawnExplosion( ent ) {
     // Configure particle emitter to explode
     particles.particles( {
         fastMode: true,
-        maxParticles: 25,
+        maxParticles: 50,
         size: 20,
         sizeRandom: 10,
-        speed: 3,
+        speed: 4,
         speedRandom: 1.2,
         angle: 0,
         angleRandom: 360,
         startColour: color,
         startColourRandom: [0, 0, 0, 0],
         endColour: [0, 0, 0, 0],
-        endColourRandom: [60, 0, 0, 0],
+        endColourRandom: [48, 48, 48, 0],
         spread: 40,
-        lifeSpan: 60,
-        lifeSpanRandom: 10,
-        duration: 60,
+        lifeSpan: 30,
+        lifeSpanRandom: 0,
+        duration: 40,
         gravity: { x: 0, y: 0 },
         jitter: 2
     } );
