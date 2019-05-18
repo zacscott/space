@@ -1,12 +1,9 @@
 ( function() {
 
-// TODO enemy bullets to kill player only
-// TODO hunter enemies which track player, rotating towards them
+// TODO hunter enemies which track player, rotating towards them, they should be white
 // TODO asteroids like roll around screen
 // TODO particle emitters on destroy
 // TODO points system
-// TODO randomly generate more and more enemies, progressively get more hard
-// TODO starfield background, dark grey stars (not with entities since bad perf)
 
 /** CONFIG ****************************************************************************************/
 
@@ -33,8 +30,7 @@ PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster)
 
 // ENEMY CONFIG  ===================================================================================
 
-ENEMY_HORIZONTAL_COLOR  = 'blue';
-ENEMY_VERTICAL_COLOR    = 'green';
+ENEMY_COLORS = [ 'red', 'green', 'blue' ];
 
 ENEMY_WIDTH        = 50;    // in pixels
 ENEMY_HEIGHT       = 20;  
@@ -62,7 +58,7 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 
 // SPAWN RATES CONFIG  =============================================================================
 
-SPAWN_INTERVAL    = 2.5  // enemy spawn rate in seconds
+SPAWN_INTERVAL    = 1.23  // enemy spawn rate in seconds
 SPAWN_HUNTER_PROB = 0.25  // probability a hunter will spawn along with normal enemy
 
 // END SPAWN RATES CONFIG  =========================================================================
@@ -219,6 +215,10 @@ function spawnEnemy() {
     var dirs = [ 'N', 'S', 'E', 'W' ];
     var dir = dirs[ Math.floor( Math.random() * dirs.length ) ];
 
+    // Select random colour for enemy
+    window.enemyColorIndex = window.enemyColorIndex || 0;
+    var color = ENEMY_COLORS[ ( window.enemyColorIndex++ ) % ENEMY_COLORS.length ];
+
     var enemy = Crafty.e( 'Entity, Enemy' )
         .attr( {
             w: ENEMY_WIDTH,
@@ -228,37 +228,30 @@ function spawnEnemy() {
         .origin( 'center' );
 
     enemy.type = 'Enemy';
+    enemy.color( color );
 
     // Set enemy params based on direction, spawn point etc
     if ( 'N' == dir ) {
         
-        enemy.color( ENEMY_VERTICAL_COLOR );
         enemy.rotation = 270;
-
         enemy.x = parseInt( Math.random() * gameWidth() );
         enemy.y = gameHeight() + ENEMY_HEIGHT;
 
     } else if ( 'S' == dir ) {
 
-        enemy.color( ENEMY_VERTICAL_COLOR );
         enemy.rotation = 90;
-
         enemy.x = parseInt( Math.random() * gameWidth() );
         enemy.y = -ENEMY_HEIGHT;
 
     } else if ( 'E' == dir ) {
 
-        enemy.color( ENEMY_HORIZONTAL_COLOR );
         enemy.rotation = 0;
-
         enemy.x = -ENEMY_WIDTH;
         enemy.y = parseInt( Math.random() * gameHeight() );
 
     } else if ( 'W' == dir ) {
 
-        enemy.color( ENEMY_HORIZONTAL_COLOR );
         enemy.rotation = 180;
-
         enemy.x = gameWidth() + ENEMY_WIDTH;
         enemy.y = parseInt( Math.random() * gameHeight() );
 
@@ -285,7 +278,7 @@ function spawnEnemy() {
     enemy.bind( 'Hit', function( hit ) {
 
         // If collided with players bullet, then we die
-        if ( 'Player' == hit.parent.type ) {
+        if ( undefined != hit.parent && 'Player' == hit.parent.type ) {
             Crafty.log( 'Enemy: killed' );
 
             // TODO particle emitter explosion
@@ -301,7 +294,7 @@ function spawnEnemy() {
 
     } );
 
-    Crafty.audio.play( 'enemySpawn' );
+    // Crafty.audio.play( 'enemySpawn' );
     Crafty.log( 'Enemy: spawned (dir='+ dir +')' );
 
 }
@@ -319,6 +312,7 @@ function spawnPlayer() {
         .origin( 'center' );
 
     player.type = 'Player';
+    player.rotation = 270;
 
     player.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
@@ -327,24 +321,24 @@ function spawnPlayer() {
         // Handle rotation
 
         var diffr = PLAYER_ROT_MAX * PLAYER_ROT_ACCEL * diffsecs;
-        if ( keyboard.isKeyDown( Crafty.keys.RIGHT_ARROW ) ) {
+        if ( keyboard.isKeyDown( Crafty.keys.D ) || keyboard.isKeyDown( Crafty.keys.RIGHT_ARROW ) ) {
             this.diffr += diffr;
-        } else if ( keyboard.isKeyDown( Crafty.keys.LEFT_ARROW ) ) {
+        } else if ( keyboard.isKeyDown( Crafty.keys.A ) || keyboard.isKeyDown( Crafty.keys.LEFT_ARROW ) ) {
             this.diffr += -diffr;
         } else {
             // Otherwise decay the rotation
             this.diffr *= 1.0 - ( PLAYER_ROT_FRICTION * diffsecs );
         }
 
-        this.diffr = Math.min( this.diffr, PLAYER_ROT_MAX );
+        this.diffr = Math.min( this.diffr, PLAYER_ROT_MAX ); 
         this.diffr = Math.max( this.diffr, -PLAYER_ROT_MAX );
 
         // Handle velocity & momentum
 
         var diffv = PLAYER_SPD_MAX * PLAYER_ACCEL * diffsecs;
-        if ( keyboard.isKeyDown( Crafty.keys.UP_ARROW ) ) {
+        if ( keyboard.isKeyDown( Crafty.keys.W ) || keyboard.isKeyDown( Crafty.keys.UP_ARROW )) {
             this.diffv += diffv;
-        } else if ( keyboard.isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
+        } else if ( keyboard.isKeyDown( Crafty.keys.S ) || keyboard.isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
             this.diffv += -diffv;
         } else {
             // Otherwise decay velocity
@@ -436,11 +430,12 @@ function gameStart() {
     Crafty.log( 'Game: starting' );
 
     spawnPlayer();
+    // spawnHunter();
 
     // Start up the game loop
     // Run one immediately then start it up on a timer
     gameLoop();
-    setInterval( gameLoop, 1000 * SPAWN_INTERVAL );
+    window.gameLoopInterval = setInterval( gameLoop, 1000 * SPAWN_INTERVAL );
 
 }
 
@@ -448,7 +443,7 @@ function gameRestart() {
     Crafty.log( 'Game: restarting' );
 
     // Remove the game loop interval
-    clearInterval( gameLoop );
+    clearInterval( window.gameLoopInterval );
 
     // Delete all entities to reset the game
     Crafty( 'Entity' ).each( function() { 
@@ -482,6 +477,7 @@ function gameLoop() {
 /** BOOT ******************************************************************************************/
 
 gameInit();
+alert( "Press WASD to move, SPACE to shoot" );
 gameStart();
 
 
