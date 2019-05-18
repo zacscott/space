@@ -49,10 +49,10 @@ function defineEntityComponent() {
                 var diffsecs = state.dt / 1000;
 
                 // Rotate entity according to its diffr
-                // TODO
+                this.rotation += ( this.diffr % 360 ) * diffsecs;
 
                 // Accelarate the entity according to its diffv
-                // TODO
+                this.velocity += this.diffv * diffsecs;
 
                 // Move the entity in its current direction according to its velocity
                 var r = this.rotation * ( Math.PI / 180 );
@@ -216,33 +216,27 @@ function spawn_player() {
         // Handle rotation
 
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.LEFT_ARROW ) ) {
-            this.diffrot += -3.0 * diffsecs;
+            this.diffr -= 720 * diffsecs;
         } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.RIGHT_ARROW ) ) {
-            this.diffrot += 3.0 * diffsecs;
+            this.diffr += 720 * diffsecs;
+        } else {
+            // Otherwise decay the rotation
+            this.diffr *= 1.0 - ( 2.0 * diffsecs );  // 720/360 same as above
         }
-
-        this.diffrot = Math.min( this.diffrot, 1 );
-        this.diffrot = Math.max( this.diffrot, -1 );
-
-        this.rotation = this.rotation + (this.diffrot*300) * diffsecs; // 300 degrees
 
         // Handle locomotion
 
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.UP_ARROW ) ) {
-            this.diffv += 3.0 * diffsecs;
+            this.diffv += 350 * diffsecs;
         } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
-            this.diffv += -3.0 * diffsecs;
+            this.diffv += -350 * diffsecs;
+        } else {
+            // Otherwise decay velocity
+            this.diffv *= 1.0 - ( 3.0 * diffsecs );
         }
 
-        this.diffv = Math.min( this.diffv, 1 );
-        this.diffv = Math.max( this.diffv, -1 );
-
-        this.velocity = this.diffv*350;
-
-        // Decay velocities
-
-        this.diffrot *= 1.0 - ( 3.0 * diffsecs );  // 3.0 same as above
-        this.diffv *= 1.0 - ( 3.0 * diffsecs );
+        this.diffv = Math.min( this.diffv, 350 );
+        this.diffv = Math.max( this.diffv, -350 );
 
         // handle shooting
 
