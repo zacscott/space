@@ -358,8 +358,8 @@ function gameInit() {
 
     defineEntityComponent();
 
+    // Preload the game audio
     Crafty.audio.setChannels( 64 );
-
     Crafty.audio.add( { // TODO convert these to OGG
         playerShoot: [ 'sfx/playerShoot.wav' ],
         playerExplode: [ 'sfx/playerExplode.wav' ],
