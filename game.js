@@ -177,6 +177,47 @@ function defineEntityComponent() {
 
 }
 
+function spawnExplosion( ent ) {
+
+    var particles = Crafty.e( '2D, Canvas, Particles' );
+    
+    particles.x = ent.x;
+    particles.y = ent.y;
+    particles.w = 100; particles.h = 200;
+
+    // parse the entities color, so we can match it
+    var color = [ 255, 255, 255, 1.0 ];
+    var cssColor = ent.color();
+    var matches = cssColor.match( /^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i );
+    if ( matches ) {
+        color = [ matches[1], matches[2], matches[3], 1.0 ];
+    }
+    // console.log( color );
+
+    // Configure particle emitter to explode
+    particles.particles( {
+        fastMode: true,
+        maxParticles: 25,
+        size: 20,
+        sizeRandom: 10,
+        speed: 3,
+        speedRandom: 1.2,
+        angle: 0,
+        angleRandom: 360,
+        startColour: color,
+        startColourRandom: [0, 0, 0, 0],
+        endColour: [0, 0, 0, 0],
+        endColourRandom: [60, 0, 0, 0],
+        spread: 40,
+        lifeSpan: 60,
+        lifeSpanRandom: 10,
+        duration: 60,
+        gravity: { x: 0, y: 0 },
+        jitter: 2
+    } );
+
+}
+
 function spawnBullet( ent ) {
 
     var bullet = Crafty.e( 'Entity, Bullet' );
@@ -294,6 +335,8 @@ function spawnEnemy() {
             Crafty.log( 'Enemy: killed' );
 
             // TODO particle emitter explosion
+
+            spawnExplosion( this );
             
             gameScorePoints( ENEMY_KILL_POINTS );
 
@@ -681,7 +724,7 @@ function gameLoop() {
 
 
 gameInit();
-alert( "Press WASD to move, SPACE to shoot" );
+// alert( "Press WASD to move, SPACE to shoot" );
 gameStart();
 
 
