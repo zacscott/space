@@ -718,7 +718,7 @@ function gameLoop() {
 
 
 gameInit();
-// alert( "Press WASD to move, SPACE to shoot" );
+alert( "Press WASD to move, SPACE to shoot" );
 gameStart();
 
 
