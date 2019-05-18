@@ -586,9 +586,16 @@ function gameInit() {
         document.getElementById('game') 
     );
 
-    // Preload the game audio
-    Crafty.audio.setChannels( 64 );
-    Crafty.audio.add( {
+    gameLoadAudio();
+
+    defineEntityComponent();
+    spawnScoreboard();
+
+}
+
+function gameLoadAudio() {
+
+    var sfx = {
         playerShoot: [ 
             'sfx/playerShoot.ogg',
             'sfx/playerShoot.wav'
@@ -617,11 +624,16 @@ function gameInit() {
             'sfx/hunterExplode.ogg',
             'sfx/hunterExplode.wav'
         ]
-    } );
+    };
 
+    // Preload audio files
+    for ( var key in sfx ) {
+        var audio = new Audio( sfx[key][0] );
+    }
 
-    defineEntityComponent();
-    spawnScoreboard();
+    // Load in Crafty
+    Crafty.audio.setChannels( 64 );
+    Crafty.audio.add( sfx );
 
 }
 
