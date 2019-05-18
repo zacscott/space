@@ -32,9 +32,14 @@ function defineEntityComponent() {
 
             this.origin( 'center' );
 
+            this.x = 0;
+            this.y = 0;
+
             // Set defaults for velocity
-            this.velocity = 0;
-            this.diffv = 0;
+            this.attr( {
+                velocity: 0,
+                diffv: 0
+            } );
 
             // Set defaults for rotation
             this.rotation = 0;
@@ -48,16 +53,21 @@ function defineEntityComponent() {
 
                 var diffsecs = state.dt / 1000;
 
+                this.trigger( 'UpdateEntity', diffsecs );
+
+                // Count time since last shot
+                // TODO shoot() method which auto decrements this
+
                 // Rotate entity according to its diffr
-                this.rotation += ( this.diffr % 360 ) * diffsecs;
+                this.rotation += this.diffr * diffsecs;
 
                 // Accelarate the entity according to its diffv
                 this.velocity += this.diffv * diffsecs;
 
                 // Move the entity in its current direction according to its velocity
                 var r = this.rotation * ( Math.PI / 180 );
-                this.x = this.x + ( this.velocity * Math.cos( r ) ) * diffsecs;
-                this.y = this.y + ( this.velocity * Math.sin( r ) ) * diffsecs;
+                this.x += ( this.velocity * Math.cos( r ) ) * diffsecs;
+                this.y += ( this.velocity * Math.sin( r ) ) * diffsecs;
 
                 return this;
 
@@ -92,8 +102,8 @@ function shoot( ent ) {
     bullet.y = ent.y + disty;
 
     var r = ent.rotation * (Math.PI/180);
-    bullet.x += (distx+10) * Math.cos( r );
-    bullet.y += (distx+10) * Math.sin( r );
+    bullet.x += (distx+15) * Math.cos( r );
+    bullet.y += (distx+15) * Math.sin( r );
 
     bullet.rotation = ent.rotation;
 
@@ -106,7 +116,7 @@ function shoot( ent ) {
 
     bullet.color( 'yellow' );
 
-    bullet.bind( 'UpdateFrame', function( state ) {
+    bullet.bind( 'UpdateEntity', function( diffsecs ) {
 
         // TODO kill once off screen
 
@@ -151,9 +161,7 @@ function spawn_enemy() {
     enemy.velocity = 25;
     enemy.diffshot = 0;
 
-    enemy.bind( 'UpdateFrame', function( state ) {
-
-        var diffsecs = state.dt / 1000;
+    enemy.bind( 'UpdateEntity', function( diffsecs ) {
 
         // Shoot at the player as fast as possible
         this.diffshot += diffsecs;
@@ -205,13 +213,9 @@ function spawn_player() {
         .color( 'white' )
         .origin( 'center' );
 
-    player.diffrot = 0;
-    player.diffv = 0;
     player.diffshot = 0;
 
-    player.bind( 'UpdateFrame', function( state ) {
-
-        var diffsecs = state.dt / 1000;
+    player.bind( 'UpdateEntity', function( diffsecs ) {
 
         // Handle rotation
 
@@ -224,12 +228,12 @@ function spawn_player() {
             this.diffr *= 1.0 - ( 2.0 * diffsecs );  // 720/360 same as above
         }
 
-        // Handle locomotion
+        // Handle velocity/movement
 
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.UP_ARROW ) ) {
-            this.diffv += 350 * diffsecs;
+            this.diffv += 350*4 * diffsecs;
         } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
-            this.diffv += -350 * diffsecs;
+            this.diffv += -350*4 * diffsecs;
         } else {
             // Otherwise decay velocity
             this.diffv *= 1.0 - ( 3.0 * diffsecs );
@@ -238,7 +242,7 @@ function spawn_player() {
         this.diffv = Math.min( this.diffv, 350 );
         this.diffv = Math.max( this.diffv, -350 );
 
-        // handle shooting
+        // Handle shooting
 
         this.diffshot += diffsecs; // TODO move this to Entity?
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.SPACE ) ) {
