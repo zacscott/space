@@ -80,6 +80,8 @@ function defineEntityComponent() {
 
             this.addComponent( '2D, Canvas, Color, Collision' );
 
+            this.type = 'Entity';
+
             this.origin( 'center' );
             this.x = this.y = 0;
 
@@ -98,11 +100,10 @@ function defineEntityComponent() {
             var that = this;
             this.onHit( 'Entity', function( hits ) {
 
-                that.trigger( 'Hit' );
-
                 for ( var i = 0; i < hits.length; i++ ) {
                     var hit = hits[i].obj;
-                    hit.trigger( 'Hit' );
+                    that.trigger( 'Hit', hit );
+                    hit.trigger( 'Hit', that );
                 }
 
             } );
@@ -172,7 +173,7 @@ function spawnBullet( ent ) {
 
     var bullet = Crafty.e( 'Entity, Bullet' );
     bullet.origin( 'center' );
-
+    bullet.type = 'Bullet';
     bullet.color( 'yellow' );
 
     bullet.attr( {
@@ -225,6 +226,8 @@ function spawnEnemy() {
             velocity: ENEMY_SPD_MAX
         } )
         .origin( 'center' );
+
+    enemy.type = 'Enemy';
 
     // Set enemy params based on direction, spawn point etc
     if ( 'N' == dir ) {
@@ -279,14 +282,20 @@ function spawnEnemy() {
 
     } );
 
-    enemy.bind( 'Hit', function() {
-        Crafty.log( 'Enemy: killed' );
+    enemy.bind( 'Hit', function( hit ) {
 
-        // TODO particle emitter explosion
+        // If collided with players bullet, then we die
+        if ( 'Player' == hit.parent.type ) {
+            Crafty.log( 'Enemy: killed' );
 
-        Crafty.audio.play( 'enemyExplode' );
+            // TODO particle emitter explosion
+            // TODO count point
 
-        this.destroy();
+            Crafty.audio.play( 'enemyExplode' );
+
+            this.destroy();
+
+        }
 
         return this;
 
@@ -308,6 +317,8 @@ function spawnPlayer() {
         } )
         .color( PLAYER_COLOR )
         .origin( 'center' );
+
+    player.type = 'Player';
 
     player.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
@@ -367,7 +378,7 @@ function spawnPlayer() {
 
     } );
 
-    player.bind( 'Hit', function() {
+    player.bind( 'Hit', function( hit ) {
         Crafty.log( 'Player: killed' );
 
         // TODO particle emitter explosion
