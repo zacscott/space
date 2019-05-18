@@ -24,10 +24,10 @@ PLAYER_HEIGHT       = 20;
 PLAYER_SHOOT_SPD    = 10;   // shots per second
 
 PLAYER_SPD_MAX      = 450;  // in pixels per second
-PLAYER_ACCEL        = 5;   // acceleration multiplier (larger = faster)
+PLAYER_ACCEL        = 8;   // acceleration multiplier (larger = faster)
 PLAYER_FRICTION     = 4;    // friction multiplier (larger = faster)
 
-PLAYER_ROT_MAX      = 540;  // degrees per second
+PLAYER_ROT_MAX      = 430;  // degrees per second
 PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster) 
 PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster) 
 
@@ -45,6 +45,20 @@ ENEMY_HEIGHT       = 20;
 ENEMY_SPD_MAX      = 35;    // in pixels per second
 
 ENEMY_SHOOT_SPD    = 0.75;  // shots per second
+
+// END ENEMY CONFIG  ===============================================================================
+
+
+// ENEMY CONFIG  ===================================================================================
+
+BULLET_COLOR  = 'yellow';
+
+BULLET_WIDTH    = 5;    // in pixels
+BULLET_HEIGHT   = 2;  
+
+BULLET_SPD_MAX  = 750;  // in pixels per second
+
+BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixels
 
 // END ENEMY CONFIG  ===============================================================================
 
@@ -138,26 +152,29 @@ function spawnBullet( ent ) {
     var bullet = Crafty.e( 'Entity, Bullet' );
     bullet.origin( 'center' );
 
+    bullet.color( 'yellow' );
+
+    bullet.attr( {
+        w: BULLET_WIDTH,
+        h: BULLET_HEIGHT,
+        rotation: ent.rotation,
+        velocity: BULLET_SPD_MAX,
+        parent: ent
+    } );
+
+    // calculate the bullets position based on parent entities position and rotation
+
     var distx = ent.w / 2;
     var disty = ent.h / 2;
 
     bullet.x = ent.x + distx;
     bullet.y = ent.y + disty;
 
-    var r = ent.rotation * (Math.PI/180);
-    bullet.x += (distx+15) * Math.cos( r );
-    bullet.y += (distx+15) * Math.sin( r );
+    var r = ent.rotation * ( Math.PI / 180 );
+    bullet.x += ( distx + BULLET_BUFFER ) * Math.cos( r );
+    bullet.y += ( distx + BULLET_BUFFER ) * Math.sin( r );
+        // we add the BULLET_BUFFER here to ensure we don't immediately collide with the parent ent
 
-    bullet.rotation = ent.rotation;
-
-    bullet.attr( {
-        w: 5,
-        h: 5
-    } );
-
-    bullet.velocity = 750;
-
-    bullet.color( 'yellow' );
 
     bullet.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
@@ -204,7 +221,7 @@ function spawnEnemy() {
         enemy.rotation = 180;
     }
 
-    enemy.bind( 'UpdateBeforePhysics', function( diffsecs ) {
+    enemy.bind( 'AfterUpdate', function( diffsecs ) {
 
         // Shoot at the player as fast as possible
         if ( this.diffshot > ( 1.0 / ENEMY_SHOOT_SPD ) ) {
@@ -275,6 +292,22 @@ function spawnPlayer() {
             this.diffv = -this.velocity * PLAYER_FRICTION;
         }
 
+        return this;
+
+    } );
+
+    player.bind( 'UpdateAfterPhysics', function( diffsecs ) {
+
+        // Limit the max speed of the player
+        this.velocity = Math.min( this.velocity, PLAYER_SPD_MAX );
+        this.velocity = Math.max( this.velocity, -PLAYER_SPD_MAX );
+
+    } );
+
+    player.bind( 'AfterUpdate', function( diffsecs ) {
+
+        var keyboard = Crafty.s( 'Keyboard' );
+
         // Handle shooting
 
         if ( keyboard.isKeyDown( Crafty.keys.SPACE ) ) {
@@ -282,15 +315,6 @@ function spawnPlayer() {
                 this.shoot();
             }
         }
-
-        return this;
-
-    } );
-
-    player.bind( 'UpdateAfterPhysics', function( diffsecs ) {
-
-        this.velocity = Math.min( this.velocity, PLAYER_SPD_MAX );
-        this.velocity = Math.max( this.velocity, -PLAYER_SPD_MAX );
 
     } );
 
