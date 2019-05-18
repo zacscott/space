@@ -1,15 +1,12 @@
+( function() {
 
-// TODO contants for speeds etc.
-// TODO enemies which shoot horizonal, vertical, and direct angle, all 3 diff primary colours (R, B, Y)
+// TODO enemy bullets to kill player only
 // TODO hunter enemies which track player, rotating towards them
 // TODO asteroids like roll around screen
 // TODO particle emitters on destroy
-// TOOD sound effects bsfx
 // TODO points system
 // TODO randomly generate more and more enemies, progressively get more hard
-// TODO preload sound effects
 // TODO starfield background, dark grey stars (not with entities since bad perf)
-// TODO wrap this in an anon function to prevent hacking
 
 /** CONFIG ****************************************************************************************/
 
@@ -109,6 +106,22 @@ function defineEntityComponent() {
             this.diffshot = 0;
         },
 
+        isOnScreen: function() {
+            // NOTE this uses a quick approximate, so it is far from pixel perfect
+
+            var maxlength = this.w + this.h;
+
+            var isOnScreen = this.within( 
+                -maxlength, 
+                -maxlength, 
+                gameWidth() + ( maxlength * 2 ), 
+                gameHeight() + ( maxlength * 2 )
+            );
+
+            return isOnScreen;
+
+        },
+
         events: {
 
             UpdateFrame: function( state ) {
@@ -178,13 +191,14 @@ function spawnBullet( ent ) {
 
     bullet.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
-        // TODO kill once off screen
+        // Destroy enemy once off screen
+        if ( ! this.isOnScreen() ) {
+            this.destroy();
+        }
 
         return this;
 
     } );
-
-    // TODO laser sound
 
     Crafty.log( 'Bullet: spawned' );
 
@@ -198,27 +212,45 @@ function spawnEnemy() {
 
     var enemy = Crafty.e( 'Entity, Enemy' )
         .attr( {
-            x: 500,  // TODO spawn off screen, depending on direction
-            y: 200,
             w: ENEMY_WIDTH,
             h: ENEMY_HEIGHT,
             velocity: ENEMY_SPD_MAX
         } )
         .origin( 'center' );
 
-    // Set colour and rotation based on selected direction
+    // Set enemy params based on direction, spawn point etc
     if ( 'N' == dir ) {
+        
         enemy.color( ENEMY_VERTICAL_COLOR );
         enemy.rotation = 270;
+
+        enemy.x = parseInt( Math.random() * gameWidth() );
+        enemy.y = gameHeight() + ENEMY_HEIGHT;
+
     } else if ( 'S' == dir ) {
+
         enemy.color( ENEMY_VERTICAL_COLOR );
         enemy.rotation = 90;
+
+        enemy.x = parseInt( Math.random() * gameWidth() );
+        enemy.y = -ENEMY_HEIGHT;
+
     } else if ( 'E' == dir ) {
+
         enemy.color( ENEMY_HORIZONTAL_COLOR );
         enemy.rotation = 0;
+
+        enemy.x = -ENEMY_WIDTH;
+        enemy.y = parseInt( Math.random() * gameHeight() );
+
     } else if ( 'W' == dir ) {
+
         enemy.color( ENEMY_HORIZONTAL_COLOR );
         enemy.rotation = 180;
+
+        enemy.x = gameWidth() + ENEMY_WIDTH;
+        enemy.y = parseInt( Math.random() * gameHeight() );
+
     }
 
     enemy.bind( 'AfterUpdate', function( diffsecs ) {
@@ -229,7 +261,11 @@ function spawnEnemy() {
             Crafty.audio.play( 'enemyShoot' );
         }
 
-        // TODO kill once off screen
+        // Destroy enemy once off screen
+        if ( ! this.isOnScreen() ) {
+            Crafty.log( 'Enemy: despawned' );
+            this.destroy();
+        }
         
         return this;
 
@@ -352,7 +388,7 @@ function gameInit() {
     Crafty.log( 'Game: initialising' );
 
     Crafty.init( 
-        window.innerWidth, window.innerHeight, 
+        gameWidth(), gameHeight(), 
         document.getElementById('game') 
     );
 
@@ -369,6 +405,15 @@ function gameInit() {
     } );
 
 }
+
+function gameWidth() {
+    return window.innerWidth;    
+}
+
+function gameHeight() {
+    return window.innerHeight;   
+}
+
 
 function gameStart() {
     Crafty.log( 'Game: starting' );
@@ -399,9 +444,13 @@ function gameShowScore() {
 function gameLoop() {
 
     spawnPlayer();
-    spawnEnemy();
 
-    // TODO setTimeout loop to spawn enemies
+    spawnEnemy();
+    setInterval( function() {
+
+        spawnEnemy();
+
+    }, 1000 ); // TODO randomise interval, progressively get harder
 
 }
 
@@ -410,3 +459,6 @@ function gameLoop() {
 
 gameInit();
 gameStart();
+
+
+} )();
