@@ -1,8 +1,6 @@
 ( function() {
 
 // TODO particle emitters on destroy
-// TODO points system
-// TODO convert sfx to OGG
 
 /** CONFIG ****************************************************************************************/
 
@@ -40,6 +38,9 @@ ENEMY_SHOOT_SPD    = 0.75;  // shots per second
 ENEMY_SPD_MAX      = 60;    // in pixels per second
 HUNTER_SHOOT_SPD   = 0.33;  // shots per second
 
+ENEMY_KILL_POINTS  = 250;   // points awarded for killing a normal enemy  
+HUNTER_KILL_POINTS = 1500;  // points awarded for killing a hunter
+
 // END ENEMY CONFIG  ===============================================================================
 
 
@@ -60,9 +61,15 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 // SPAWN RATES CONFIG  =============================================================================
 
 SPAWN_INTERVAL    = 1.23  // enemy spawn rate in seconds
-SPAWN_HUNTER_PROB = 0.1  // probability a hunter will spawn along with normal enemy
+SPAWN_HUNTER_PROB = 0.1   // probability a hunter will spawn along with normal enemy
 
 // END SPAWN RATES CONFIG  =========================================================================
+
+
+/** STATE *****************************************************************************************/
+
+
+var score = 0;  // the players score
 
 
 /** ENTITIES **************************************************************************************/
@@ -283,7 +290,8 @@ function spawnEnemy() {
             Crafty.log( 'Enemy: killed' );
 
             // TODO particle emitter explosion
-            // TODO count point
+            
+            gameScorePoints( ENEMY_KILL_POINTS );
 
             Crafty.audio.play( 'enemyExplode' );
 
@@ -377,7 +385,8 @@ function spawnHunter() {
             Crafty.log( 'Hunter: killed' );
 
             // TODO particle emitter explosion this.explode
-            // TODO count points (extra for killing hunter)
+            
+            gameScorePoints( HUNTER_KILL_POINTS );
 
             Crafty.audio.play( 'hunterExplode' );
 
@@ -508,8 +517,25 @@ function spawnPlayer() {
 
 }
 
+function spawnScoreboard() {
+
+    var scoreboard = Crafty.e( '2D, Canvas, Text, Scoreboard' );
+    scoreboard.x = 20;
+    scoreboard.y = 20;
+
+    scoreboard.textColor( 'white' );
+
+    scoreboard.textFont( {
+        size:   '32px',
+        weight: 'bold',
+        family: 'monospace'
+    } );
+
+}
+
 
 /** GAME LOGIC ************************************************************************************/
+
 
 function gameInit() {
     Crafty.log( 'Game: initialising' );
@@ -518,8 +544,6 @@ function gameInit() {
         gameWidth(), gameHeight(), 
         document.getElementById('game') 
     );
-
-    defineEntityComponent();
 
     // Preload the game audio
     Crafty.audio.setChannels( 64 );
@@ -554,6 +578,10 @@ function gameInit() {
         ]
     } );
 
+
+    defineEntityComponent();
+    spawnScoreboard();
+
 }
 
 function gameWidth() {
@@ -578,6 +606,10 @@ function gameStart() {
     gameLoop();
     window.gameLoopInterval = setInterval( gameLoop, 1000 * SPAWN_INTERVAL );
 
+    // Initialise the scoreboard
+    score = 0;
+    gameScorePoints( 0 ); // force render
+
 }
 
 function gameRestart() {
@@ -596,9 +628,19 @@ function gameRestart() {
 
 }
 
+function gameScorePoints( points ) {
+
+    score += points;
+
+    // Update the scoreboard
+    var scoreboard = Crafty( 'Scoreboard' );
+    scoreboard.text( 'SCORE: ' + score );
+
+}
+
 function gameShowScore() {
 
-    alert( 'You suck' ); // TODO display points
+    alert( 'Noice try. You scored ' + score + ' points' ); // TODO display points
 
 }
 
@@ -616,6 +658,7 @@ function gameLoop() {
 
 
 /** BOOT ******************************************************************************************/
+
 
 gameInit();
 alert( "Press WASD to move, SPACE to shoot" );
