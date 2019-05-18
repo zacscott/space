@@ -45,6 +45,19 @@ function defineEntityComponent() {
             this.rotation = 0;
             this.diffr = 0;
 
+            // Handle hit detection/collisions
+            var that = this;
+            this.onHit( 'Entity', function( hits ) {
+
+                that.trigger( 'Hit' );
+
+                for ( var i = 0; i < hits.length; i++ ) {
+                    var hit = hits[i].obj;
+                    hit.trigger( 'Hit' );
+                }
+
+            } );
+
         },
 
         shoot: function() {
@@ -81,17 +94,6 @@ function defineEntityComponent() {
         }
 
     } );
-
-}
-
-function handle_hit( ent, hits ) {
-
-    ent.trigger( 'Hit' );
-
-    for ( var i = 0; i < hits.length; i++ ) {
-        var hit = hits[i].obj;
-        hit.trigger( 'Hit' );
-    }
 
 }
 
@@ -189,16 +191,6 @@ function spawn_enemy() {
 
     } );
 
-    enemy.onHit( 'Bullet', function( hits ) {
-        handle_hit( this, hits );
-        return this;
-    } );
-
-    enemy.onHit( 'Player', function( hits ) {
-        handle_hit( this, hits );
-        return this;
-    } );
-
 }
 
 function spawn_player() {
@@ -259,16 +251,10 @@ function spawn_player() {
         // TODO explosion noise
         this.destroy();
 
+        alert( "YOU SUCK" );  // TODO include points scored, then restart
+
         return this;
 
-    } );
-
-    player.onHit( 'Bullet', function( hits ) { // TODO move this to entity
-        handle_hit( this, hits );
-    } );
-
-    player.onHit( 'Enemy', function( hits ) {
-        handle_hit( this, hits );
     } );
 
 }
