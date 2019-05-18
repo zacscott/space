@@ -31,20 +31,25 @@ function defineEntityComponent() {
             this.addComponent( '2D, Canvas, Color, Collision' );
 
             this.origin( 'center' );
-
             this.x = 0;
             this.y = 0;
 
+            // Time since last shot fired
+            this.diffshot = 0;
+
             // Set defaults for velocity
-            this.attr( {
-                velocity: 0,
-                diffv: 0
-            } );
+            this.velocity = 0;
+            this.diffv = 0;
 
             // Set defaults for rotation
             this.rotation = 0;
             this.diffr = 0;
 
+        },
+
+        shoot: function() {
+            spawn_bullet( this );
+            this.diffshot = 0;
         },
 
         events: {
@@ -56,7 +61,7 @@ function defineEntityComponent() {
                 this.trigger( 'UpdateEntity', diffsecs );
 
                 // Count time since last shot
-                // TODO shoot() method which auto decrements this
+                this.diffshot += diffsecs;
 
                 // Rotate entity according to its diffr
                 this.rotation += this.diffr * diffsecs;
@@ -90,8 +95,8 @@ function handle_hit( ent, hits ) {
 
 }
 
-function shoot( ent ) {
-    Crafty.log( "shoot" );
+function spawn_bullet( ent ) {
+    Crafty.log( "spawn_bullet" );
 
     var bullet = Crafty.e( 'Entity, Bullet' );
 
@@ -159,17 +164,12 @@ function spawn_enemy() {
     }
 
     enemy.velocity = 25;
-    enemy.diffshot = 0;
 
     enemy.bind( 'UpdateEntity', function( diffsecs ) {
 
         // Shoot at the player as fast as possible
-        this.diffshot += diffsecs;
         if ( this.diffshot > 0.75 ) { // every 0.2 secs
-
-            shoot( this );
-            this.diffshot = 0;
-
+            this.shoot()
         }
 
         // TODO kill once off screen
@@ -213,8 +213,6 @@ function spawn_player() {
         .color( 'white' )
         .origin( 'center' );
 
-    player.diffshot = 0;
-
     player.bind( 'UpdateEntity', function( diffsecs ) {
 
         // Handle rotation
@@ -244,11 +242,9 @@ function spawn_player() {
 
         // Handle shooting
 
-        this.diffshot += diffsecs; // TODO move this to Entity?
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.SPACE ) ) {
             if ( this.diffshot > 0.1 ) { // every 0.1 secs
-                shoot( this );
-                this.diffshot = 0;
+                this.shoot();
             }
         }
 
