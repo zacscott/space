@@ -1,6 +1,7 @@
 
 // TODO contants for speeds etc.
 // TODO enemies which shoot horizonal, vertical, and direct angle, all 3 diff primary colours (R, B, Y)
+// TODO hunter enemies which track player, rotating towards them
 // TODO asteroids like roll around screen
 // TODO particle emitters on destroy
 // TOOD sound effects bsfx
@@ -10,16 +11,16 @@
 // TODO starfield background, dark grey stars (not with entities since bad perf)
 // TODO wrap this in an anon function to prevent hacking
 
-function init() {
+/** CONFIG ****************************************************************************************/
 
-    Crafty.init( 
-        window.innerWidth, window.innerHeight, 
-        document.getElementById('game') 
-    );
 
-    defineEntityComponent();
+CONFIG = {
 
-}
+};
+
+
+/** ENTITIES **************************************************************************************/
+
 
 /** Define the base Entity component used by all of our game ents */
 function defineEntityComponent() {
@@ -61,7 +62,7 @@ function defineEntityComponent() {
         },
 
         shoot: function() {
-            spawn_bullet( this );
+            spawnBullet( this );
             this.diffshot = 0;
         },
 
@@ -97,8 +98,7 @@ function defineEntityComponent() {
 
 }
 
-function spawn_bullet( ent ) {
-    Crafty.log( "spawn_bullet" );
+function spawnBullet( ent ) {
 
     var bullet = Crafty.e( 'Entity, Bullet' );
 
@@ -133,9 +133,11 @@ function spawn_bullet( ent ) {
 
     // TODO laser sound
 
+    Crafty.log( 'Bullet: spawned' );
+
 }
 
-function spawn_enemy() {
+function spawnEnemy() {
 
     var dirs = [ 'N', 'S', 'E', 'W' ];
     var dir = dirs[Math.floor(Math.random()*dirs.length)];
@@ -181,7 +183,7 @@ function spawn_enemy() {
     } );
 
     enemy.bind( 'Hit', function() {
-        console.log("enemy hit");
+        Crafty.log( 'Enemy: killed' );
 
         // TODO particle emitter explosion
         // TODO explosion noise
@@ -191,9 +193,11 @@ function spawn_enemy() {
 
     } );
 
+    Crafty.log( 'Enemy: spawned (dir='+ dir +')' );
+
 }
 
-function spawn_player() {
+function spawnPlayer() {
 
     var player = Crafty.e( 'Entity, Player, Keyboard' )
         .attr( {
@@ -245,20 +249,76 @@ function spawn_player() {
     } );
 
     player.bind( 'Hit', function() {
-        console.log("player hit");
+        Crafty.log( 'Player: killed' );
 
         // TODO particle emitter explosion
         // TODO explosion noise
         this.destroy();
 
-        alert( "YOU SUCK" );  // TODO include points scored, then restart
+        gameShowPoints();
+        gameRestart();
 
         return this;
 
     } );
 
+    Crafty.log( 'Player: spawned' );
+
 }
 
-init();
-spawn_player();
-spawn_enemy();
+
+/** GAME LOGIC ************************************************************************************/
+
+
+function gameInit() {
+    Crafty.log( 'Game: initialising' );
+
+    Crafty.init( 
+        window.innerWidth, window.innerHeight, 
+        document.getElementById('game') 
+    );
+
+    defineEntityComponent();
+
+}
+
+function gameStart() {
+    Crafty.log( 'Game: starting' );
+
+    gameLoop();
+
+}
+
+function gameRestart() {
+    Crafty.log( 'Game: restarting' );
+
+    // Delete all entities to reset the game
+    Crafty( 'Entity' ).each( function() { 
+        this.destroy(); 
+    } );
+
+    // Start the game over again
+    gameStart();
+
+}
+
+function gameShowPoints() {
+
+    alert( 'You suck' ); // TODO display points
+
+}
+
+function gameLoop() {
+
+    spawnPlayer();
+    spawnEnemy();
+
+    // TODO setTimeout loop to spawn enemies
+
+}
+
+
+/** BOOT ******************************************************************************************/
+
+gameInit();
+gameStart();
