@@ -6,9 +6,68 @@
 // TOOD sound effects bsfx
 // TODO points system
 // TODO randomly generate more and more enemies, progressively get more hard
-// TODO resizable game field to window size
-// TODO starfield background, dark grey stars (not with entities since bad perf)
 // TODO preload sound effects
+// TODO starfield background, dark grey stars (not with entities since bad perf)
+// TODO wrap this in an anon function to prevent hacking
+
+function init() {
+
+    Crafty.init( 
+        window.innerWidth, window.innerHeight, 
+        document.getElementById('game') 
+    );
+
+    defineEntityComponent();
+
+}
+
+/** Define the base Entity component used by all of our game ents */
+function defineEntityComponent() {
+
+    Crafty.c( 'Entity', {
+
+        init: function() {
+
+            this.addComponent( '2D, Canvas, Color, Collision' );
+
+            this.origin( 'center' );
+
+            // Set defaults for velocity
+            this.velocity = 0;
+            this.diffv = 0;
+
+            // Set defaults for rotation
+            this.rotation = 0;
+            this.diffr = 0;
+
+        },
+
+        events: {
+
+            UpdateFrame: function( state ) {
+
+                var diffsecs = state.dt / 1000;
+
+                // Rotate entity according to its diffr
+                // TODO
+
+                // Accelarate the entity according to its diffv
+                // TODO
+
+                // Move the entity in its current direction according to its velocity
+                var r = this.rotation * ( Math.PI / 180 );
+                this.x = this.x + ( this.velocity * Math.cos( r ) ) * diffsecs;
+                this.y = this.y + ( this.velocity * Math.sin( r ) ) * diffsecs;
+
+                return this;
+
+            }
+
+        }
+
+    } );
+
+}
 
 function handle_hit( ent, hits ) {
 
@@ -21,9 +80,10 @@ function handle_hit( ent, hits ) {
 
 }
 
-function shoot( ent ) {console.log("shoot");
+function shoot( ent ) {
+    Crafty.log( "shoot" );
 
-    var bullet = Crafty.e( 'Bullet, 2D, Canvas, Color, Collision' );
+    var bullet = Crafty.e( 'Entity, Bullet' );
 
     var distx = ent.w / 2;
     var disty = ent.h / 2;
@@ -42,19 +102,15 @@ function shoot( ent ) {console.log("shoot");
         h: 5
     } );
 
+    bullet.velocity = 750;
+
     bullet.color( 'yellow' );
 
     bullet.bind( 'UpdateFrame', function( state ) {
 
-        var diffsecs = state.dt / 1000;
-
-        this.diffv = 750;
-
-        var r = this.rotation * (Math.PI/180);
-        this.x += (this.diffv*Math.cos(r)) * diffsecs;
-        this.y += (this.diffv*Math.sin(r)) * diffsecs;
-
         // TODO kill once off screen
+
+        return this;
 
     } );
 
@@ -67,7 +123,7 @@ function spawn_enemy() {
     var dirs = [ 'N', 'S', 'E', 'W' ];
     var dir = dirs[Math.floor(Math.random()*dirs.length)];
 
-    var enemy = Crafty.e( 'Enemy, 2D, Canvas, Color, Collision' )
+    var enemy = Crafty.e( 'Entity, Enemy' )
         .attr( {
             x: 500,  // TODO spawn off screen, depending on direction
             y: 200,
@@ -92,15 +148,12 @@ function spawn_enemy() {
         enemy.rotation = 180;
     }
 
+    enemy.velocity = 25;
     enemy.diffshot = 0;
 
     enemy.bind( 'UpdateFrame', function( state ) {
 
         var diffsecs = state.dt / 1000;
-
-        var r = this.rotation * ( Math.PI / 180 );   // TODO surely this can be reused
-        this.x = this.x + ( 25 * Math.cos( r ) ) * diffsecs;
-        this.y = this.y + ( 25 * Math.sin( r ) ) * diffsecs;
 
         // Shoot at the player as fast as possible
         this.diffshot += diffsecs;
@@ -112,6 +165,8 @@ function spawn_enemy() {
         }
 
         // TODO kill once off screen
+        
+        return this;
 
     } );
 
@@ -122,22 +177,25 @@ function spawn_enemy() {
         // TODO explosion noise
 
         this.destroy();
+        return this;
 
     } );
 
     enemy.onHit( 'Bullet', function( hits ) {
         handle_hit( this, hits );
+        return this;
     } );
 
     enemy.onHit( 'Player', function( hits ) {
         handle_hit( this, hits );
+        return this;
     } );
 
 }
 
 function spawn_player() {
 
-    var player = Crafty.e( 'Player, 2D, Canvas, Color, Collision, Keyboard' )
+    var player = Crafty.e( 'Entity, Player, Keyboard' )
         .attr( {
             x: 100,
             y: 100,
@@ -179,9 +237,7 @@ function spawn_player() {
         this.diffv = Math.min( this.diffv, 1 );
         this.diffv = Math.max( this.diffv, -1 );
 
-        var r = this.rotation * (Math.PI/180);
-        this.x = this.x + (this.diffv*350*Math.cos(r)) * diffsecs;
-        this.y = this.y + (this.diffv*350*Math.sin(r)) * diffsecs;
+        this.velocity = this.diffv*350;
 
         // Decay velocities
 
@@ -190,13 +246,15 @@ function spawn_player() {
 
         // handle shooting
 
-        this.diffshot += diffsecs;
+        this.diffshot += diffsecs; // TODO move this to Entity?
         if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.SPACE ) ) {
             if ( this.diffshot > 0.1 ) { // every 0.1 secs
                 shoot( this );
                 this.diffshot = 0;
             }
         }
+
+        return this;
 
     } );
 
@@ -207,9 +265,11 @@ function spawn_player() {
         // TODO explosion noise
         this.destroy();
 
+        return this;
+
     } );
 
-    player.onHit( 'Bullet', function( hits ) {
+    player.onHit( 'Bullet', function( hits ) { // TODO move this to entity
         handle_hit( this, hits );
     } );
 
@@ -219,6 +279,6 @@ function spawn_player() {
 
 }
 
-Crafty.init( window.innerWidth, window.innerHeight, document.getElementById('game') );
+init();
 spawn_player();
 spawn_enemy();
