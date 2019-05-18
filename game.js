@@ -24,7 +24,7 @@ PLAYER_SPD_MAX      = 450;  // in pixels per second
 PLAYER_ACCEL        = 8;   // acceleration multiplier (larger = faster)
 PLAYER_FRICTION     = 4;    // friction multiplier (larger = faster)
 
-PLAYER_ROT_MAX      = 430;  // degrees per second
+PLAYER_ROT_MAX      = 360;  // degrees per second
 PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster) 
 PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster) 
 
@@ -58,6 +58,14 @@ BULLET_SPD_MAX  = 750;  // in pixels per second
 BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixels
 
 // END ENEMY CONFIG  ===============================================================================
+
+
+// SPAWN RATES CONFIG  =============================================================================
+
+SPAWN_INTERVAL    = 2.5  // enemy spawn rate in seconds
+SPAWN_HUNTER_PROB = 0.25  // probability a hunter will spawn along with normal enemy
+
+// END SPAWN RATES CONFIG  =========================================================================
 
 
 /** ENTITIES **************************************************************************************/
@@ -200,7 +208,7 @@ function spawnBullet( ent ) {
 
     } );
 
-    Crafty.log( 'Bullet: spawned' );
+    // Crafty.log( 'Bullet: spawned' );
 
 }
 
@@ -275,7 +283,6 @@ function spawnEnemy() {
         Crafty.log( 'Enemy: killed' );
 
         // TODO particle emitter explosion
-        // TODO explosion noise
 
         Crafty.audio.play( 'enemyExplode' );
 
@@ -383,7 +390,6 @@ function spawnPlayer() {
 
 /** GAME LOGIC ************************************************************************************/
 
-
 function gameInit() {
     Crafty.log( 'Game: initialising' );
 
@@ -418,12 +424,20 @@ function gameHeight() {
 function gameStart() {
     Crafty.log( 'Game: starting' );
 
+    spawnPlayer();
+
+    // Start up the game loop
+    // Run one immediately then start it up on a timer
     gameLoop();
+    setInterval( gameLoop, 1000 * SPAWN_INTERVAL );
 
 }
 
 function gameRestart() {
     Crafty.log( 'Game: restarting' );
+
+    // Remove the game loop interval
+    clearInterval( gameLoop );
 
     // Delete all entities to reset the game
     Crafty( 'Entity' ).each( function() { 
@@ -443,14 +457,13 @@ function gameShowScore() {
 
 function gameLoop() {
 
-    spawnPlayer();
-
     spawnEnemy();
-    setInterval( function() {
 
-        spawnEnemy();
-
-    }, 1000 ); // TODO randomise interval, progressively get harder
+    // Spawn hunter randomly
+    var dice = parseInt( Math.random() * SPAWN_HUNTER_PROB );
+    if ( dice % SPAWN_HUNTER_PROB ) {
+        // spawnHunter();
+    }
 
 }
 
