@@ -14,13 +14,24 @@
 /** CONFIG ****************************************************************************************/
 
 
-PLAYER_WIDTH     = 50;   // in pixels
-PLAYER_HEIGHT    = 20;  
-PLAYER_MAX_SPEED = 350;  // in pixels per second
-PLAYER_ACCEL     = 4;    // seconds until max speed
-PLAYER_FRICTION  = 4;    // seconds until 0 speed
-PLAYER_ROT_RATE  = 720;  // rotation rate in degrees per second
-PLAYER_COLOR     = 'white';
+// PLAYER CONFIG  ==================================================================================
+
+PLAYER_COLOR        = 'white';
+
+PLAYER_WIDTH        = 50;   // in pixels
+PLAYER_HEIGHT       = 20;  
+
+PLAYER_SHOOT_SPD    = 10;   // shots per second
+
+PLAYER_SPD_MAX      = 450;  // in pixels per second
+PLAYER_ACCEL        = 16;   // acceleration multiplier (larger = faster)
+PLAYER_FRICTION     = 4;    // friction multiplier (larger = faster)
+
+PLAYER_ROT_MAX      = 540;  // degrees per second
+PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster) 
+PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster) 
+
+// END PLAYER CONFIG  ==============================================================================
 
 
 /** ENTITIES **************************************************************************************/
@@ -36,8 +47,7 @@ function defineEntityComponent() {
             this.addComponent( '2D, Canvas, Color, Collision' );
 
             this.origin( 'center' );
-            this.x = 0;
-            this.y = 0;
+            this.x = this.y = 0;
 
             // Time since last shot fired
             this.diffshot = 0;
@@ -76,7 +86,9 @@ function defineEntityComponent() {
 
                 var diffsecs = state.dt / 1000;
 
-                this.trigger( 'UpdateEntity', diffsecs );
+                this.trigger( 'BeforeUpdate', diffsecs );
+
+                this.trigger( 'UpdateBeforePhysics', diffsecs );
 
                 // Count time since last shot
                 this.diffshot += diffsecs;
@@ -87,10 +99,14 @@ function defineEntityComponent() {
                 // Accelarate the entity according to its diffv
                 this.velocity += this.diffv * diffsecs;
 
+                this.trigger( 'UpdateAfterPhysics', diffsecs );
+
                 // Move the entity in its current direction according to its velocity
                 var r = this.rotation * ( Math.PI / 180 );
                 this.x += ( this.velocity * Math.cos( r ) ) * diffsecs;
                 this.y += ( this.velocity * Math.sin( r ) ) * diffsecs;
+
+                this.trigger( 'AfterUpdate', diffsecs );
 
                 return this;
 
@@ -105,6 +121,7 @@ function defineEntityComponent() {
 function spawnBullet( ent ) {
 
     var bullet = Crafty.e( 'Entity, Bullet' );
+    bullet.origin( 'center' );
 
     var distx = ent.w / 2;
     var disty = ent.h / 2;
@@ -127,7 +144,7 @@ function spawnBullet( ent ) {
 
     bullet.color( 'yellow' );
 
-    bullet.bind( 'UpdateEntity', function( diffsecs ) {
+    bullet.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
         // TODO kill once off screen
 
@@ -173,7 +190,7 @@ function spawnEnemy() {
 
     enemy.velocity = 25;
 
-    enemy.bind( 'UpdateEntity', function( diffsecs ) {
+    enemy.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
         // Shoot at the player as fast as possible
         if ( this.diffshot > 0.75 ) { // every 0.2 secs
@@ -205,63 +222,61 @@ function spawnPlayer() {
 
     var player = Crafty.e( 'Entity, Player, Keyboard' )
         .attr( {
-            x: 100,
-            y: 100,
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2,
             w: PLAYER_WIDTH,
             h: PLAYER_HEIGHT
         } )
-        .color( PLAYER_COLOR );
+        .color( PLAYER_COLOR )
+        .origin( 'center' );
 
-    player.origin( 'center' );
+    player.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
-    player.bind( 'UpdateEntity', function( diffsecs ) {
+        var keyboard = Crafty.s( 'Keyboard' );
 
         // Handle rotation
 
-        if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.LEFT_ARROW ) ) {
-            
-            this.diffr -= PLAYER_ROT_RATE * diffsecs;
-
-        } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.RIGHT_ARROW ) ) {
-            
-            this.diffr += PLAYER_ROT_RATE * diffsecs;
-
+        var diffr = PLAYER_ROT_MAX * PLAYER_ROT_ACCEL * diffsecs;
+        if ( keyboard.isKeyDown( Crafty.keys.RIGHT_ARROW ) ) {
+            this.diffr += diffr;
+        } else if ( keyboard.isKeyDown( Crafty.keys.LEFT_ARROW ) ) {
+            this.diffr += -diffr;
         } else {
-            
             // Otherwise decay the rotation
-            this.diffr *= 1.0 - ( PLAYER_FRICTION * diffsecs );  // 720/360 same as above
-
+            this.diffr *= 1.0 - ( PLAYER_ROT_FRICTION * diffsecs );
         }
+
+        this.diffr = Math.min( this.diffr, PLAYER_ROT_MAX );
+        this.diffr = Math.max( this.diffr, -PLAYER_ROT_MAX );
 
         // Handle velocity & momentum
 
-        if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.UP_ARROW ) ) {
-            
-            this.diffv += PLAYER_MAX_SPEED * PLAYER_ACCEL * diffsecs;
-
-        } else if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
-            
-            this.diffv += -PLAYER_MAX_SPEED * PLAYER_ACCEL * diffsecs;
-
+        var diffv = PLAYER_SPD_MAX * PLAYER_ACCEL * diffsecs;
+        if ( keyboard.isKeyDown( Crafty.keys.UP_ARROW ) ) {
+            this.diffv += diffv;
+        } else if ( keyboard.isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
+            this.diffv += -diffv;
         } else {
-
             // Otherwise decay velocity
-            this.diffv *= 1.0 - ( PLAYER_FRICTION * diffsecs );
-
+            this.diffv = -this.velocity * PLAYER_FRICTION;
         }
-
-        this.diffv = Math.min( this.diffv, PLAYER_MAX_SPEED );
-        this.diffv = Math.max( this.diffv, -PLAYER_MAX_SPEED );
 
         // Handle shooting
 
-        if ( Crafty.s( 'Keyboard' ).isKeyDown( Crafty.keys.SPACE ) ) {
-            if ( this.diffshot > 0.1 ) { // every 0.1 secs
+        if ( keyboard.isKeyDown( Crafty.keys.SPACE ) ) {
+            if ( this.diffshot > ( 1.0 / PLAYER_SHOOT_SPD ) ) {
                 this.shoot();
             }
         }
 
         return this;
+
+    } );
+
+    player.bind( 'UpdateAfterPhysics', function( diffsecs ) {
+
+        this.velocity = Math.min( this.velocity, PLAYER_SPD_MAX );
+        this.velocity = Math.max( this.velocity, -PLAYER_SPD_MAX );
 
     } );
 
@@ -272,7 +287,7 @@ function spawnPlayer() {
         // TODO explosion noise
         this.destroy();
 
-        gameShowPoints();
+        gameShowScore();
         gameRestart();
 
         return this;
@@ -319,7 +334,7 @@ function gameRestart() {
 
 }
 
-function gameShowPoints() {
+function gameShowScore() {
 
     alert( 'You suck' ); // TODO display points
 
