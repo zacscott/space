@@ -263,7 +263,7 @@ function spawnEnemy() {
         // Shoot at the player as fast as possible
         if ( this.diffshot > ( 1.0 / ENEMY_SHOOT_SPD ) ) {
             this.shoot();
-            Crafty.audio.play( 'enemyShoot' );
+            Crafty.audio.play( 'enemyShoot', 1, 0.5 );
         }
 
         // Destroy enemy once off screen
@@ -363,7 +363,7 @@ function spawnHunter() {
         // Shoot at the player as fast as possible
         if ( this.diffshot > ( 1.0 / ENEMY_SHOOT_SPD ) ) {
             this.shoot();
-            Crafty.audio.play( 'enemyShoot' );
+            Crafty.audio.play( 'hunterShoot' );
         }
 
         return this;
@@ -379,7 +379,7 @@ function spawnHunter() {
             // TODO particle emitter explosion this.explode
             // TODO count points (extra for killing hunter)
 
-            Crafty.audio.play( 'enemyExplode' ); // TODO special sound for killing hunter
+            Crafty.audio.play( 'hunterExplode' );
 
             this.destroy();
 
@@ -481,7 +481,7 @@ function spawnPlayer() {
         if ( keyboard.isKeyDown( Crafty.keys.SPACE ) ) {
             if ( this.diffshot > ( 1.0 / PLAYER_SHOOT_SPD ) ) {
                 this.shoot();
-                Crafty.audio.play( 'playerShoot' );
+                Crafty.audio.play( 'playerShoot', 1, 0.75 );
             }
         }
 
@@ -526,9 +526,11 @@ function gameInit() {
     Crafty.audio.add( { // TODO convert these to OGG
         playerShoot: [ 'sfx/playerShoot.wav' ],
         playerExplode: [ 'sfx/playerExplode.wav' ],
-        enemySpawn: [ 'sfx/enemySpawn.wav' ],
         enemyShoot: [ 'sfx/enemyShoot.wav' ],
         enemyExplode: [ 'sfx/enemyExplode.wav' ],
+        hunterSpawn: [ 'sfx/hunterSpawn.wav' ],
+        hunterShoot: [ 'sfx/hunterShoot.wav' ],
+        hunterExplode: [ 'sfx/hunterExplode.wav' ]
     } );
 
 }
