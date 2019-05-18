@@ -24,7 +24,7 @@ PLAYER_HEIGHT       = 20;
 PLAYER_SHOOT_SPD    = 10;   // shots per second
 
 PLAYER_SPD_MAX      = 450;  // in pixels per second
-PLAYER_ACCEL        = 16;   // acceleration multiplier (larger = faster)
+PLAYER_ACCEL        = 5;   // acceleration multiplier (larger = faster)
 PLAYER_FRICTION     = 4;    // friction multiplier (larger = faster)
 
 PLAYER_ROT_MAX      = 540;  // degrees per second
@@ -32,6 +32,21 @@ PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster
 PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster) 
 
 // END PLAYER CONFIG  ==============================================================================
+
+
+// ENEMY CONFIG  ===================================================================================
+
+ENEMY_HORIZONTAL_COLOR  = 'blue';
+ENEMY_VERTICAL_COLOR    = 'green';
+
+ENEMY_WIDTH        = 50;    // in pixels
+ENEMY_HEIGHT       = 20;  
+
+ENEMY_SPD_MAX      = 35;    // in pixels per second
+
+ENEMY_SHOOT_SPD    = 0.75;  // shots per second
+
+// END ENEMY CONFIG  ===============================================================================
 
 
 /** ENTITIES **************************************************************************************/
@@ -160,40 +175,39 @@ function spawnBullet( ent ) {
 
 function spawnEnemy() {
 
+    // Select a random direction for the enemy
     var dirs = [ 'N', 'S', 'E', 'W' ];
-    var dir = dirs[Math.floor(Math.random()*dirs.length)];
+    var dir = dirs[ Math.floor( Math.random() * dirs.length ) ];
 
     var enemy = Crafty.e( 'Entity, Enemy' )
         .attr( {
             x: 500,  // TODO spawn off screen, depending on direction
             y: 200,
-            w: 50,
-            h: 20
+            w: ENEMY_WIDTH,
+            h: ENEMY_HEIGHT,
+            velocity: ENEMY_SPD_MAX
         } )
         .origin( 'center' );
 
-    dir = 'S';
-
+    // Set colour and rotation based on selected direction
     if ( 'N' == dir ) {
-        enemy.color( 'blue' );
+        enemy.color( ENEMY_VERTICAL_COLOR );
         enemy.rotation = 270;
     } else if ( 'S' == dir ) {
-        enemy.color( 'blue' );
+        enemy.color( ENEMY_VERTICAL_COLOR );
         enemy.rotation = 90;
     } else if ( 'E' == dir ) {
-        enemy.color( 'green' );
+        enemy.color( ENEMY_HORIZONTAL_COLOR );
         enemy.rotation = 0;
     } else if ( 'W' == dir ) {
-        enemy.color( 'green' );
+        enemy.color( ENEMY_HORIZONTAL_COLOR );
         enemy.rotation = 180;
     }
-
-    enemy.velocity = 25;
 
     enemy.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
         // Shoot at the player as fast as possible
-        if ( this.diffshot > 0.75 ) { // every 0.2 secs
+        if ( this.diffshot > ( 1.0 / ENEMY_SHOOT_SPD ) ) {
             this.shoot()
         }
 
