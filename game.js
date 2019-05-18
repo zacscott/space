@@ -4,6 +4,7 @@
 // TODO asteroids like roll around screen
 // TODO particle emitters on destroy
 // TODO points system
+// TODO convert sfx to OGG
 
 /** CONFIG ****************************************************************************************/
 
@@ -36,8 +37,10 @@ ENEMY_WIDTH        = 50;    // in pixels
 ENEMY_HEIGHT       = 20;  
 
 ENEMY_SPD_MAX      = 35;    // in pixels per second
-
 ENEMY_SHOOT_SPD    = 0.75;  // shots per second
+
+ENEMY_SPD_MAX      = 60;    // in pixels per second
+HUNTER_SHOOT_SPD   = 0.33;  // shots per second
 
 // END ENEMY CONFIG  ===============================================================================
 
@@ -59,7 +62,7 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 // SPAWN RATES CONFIG  =============================================================================
 
 SPAWN_INTERVAL    = 1.23  // enemy spawn rate in seconds
-SPAWN_HUNTER_PROB = 0.25  // probability a hunter will spawn along with normal enemy
+SPAWN_HUNTER_PROB = 0.1  // probability a hunter will spawn along with normal enemy
 
 // END SPAWN RATES CONFIG  =========================================================================
 
@@ -299,6 +302,100 @@ function spawnEnemy() {
 
 }
 
+function spawnHunter() {
+
+    // Select a random direction for the enemy
+    var dirs = [ 'N', 'S', 'E', 'W' ];
+    var dir = dirs[ Math.floor( Math.random() * dirs.length ) ];
+
+    var enemy = Crafty.e( 'Entity, Enemy, Hunter' )
+        .attr( {
+            w: ENEMY_WIDTH,
+            h: ENEMY_HEIGHT,
+            velocity: ENEMY_SPD_MAX
+        } )
+        .origin( 'center' );
+
+    enemy.type = 'Enemy';
+    enemy.color( '#f0f' );
+
+    // Set enemy params based on direction, spawn point etc
+    if ( 'N' == dir ) {
+        
+        enemy.rotation = 270;
+        enemy.x = parseInt( Math.random() * gameWidth() );
+        enemy.y = gameHeight() + ENEMY_HEIGHT;
+
+    } else if ( 'S' == dir ) {
+
+        enemy.rotation = 90;
+        enemy.x = parseInt( Math.random() * gameWidth() );
+        enemy.y = -ENEMY_HEIGHT;
+
+    } else if ( 'E' == dir ) {
+
+        enemy.rotation = 0;
+        enemy.x = -ENEMY_WIDTH;
+        enemy.y = parseInt( Math.random() * gameHeight() );
+
+    } else if ( 'W' == dir ) {
+
+        enemy.rotation = 180;
+        enemy.x = gameWidth() + ENEMY_WIDTH;
+        enemy.y = parseInt( Math.random() * gameHeight() );
+
+    }
+
+    enemy.bind( 'UpdateBeforePhysics', function( diffsecs ) {
+
+        var player = gamePlayerEntity();
+
+        var deltaX = player.x - this.x;
+        var deltaY = player.y - this.y;
+        var rad = Math.atan2( deltaY, deltaX );
+
+        this.rotation = rad * ( 180 / Math.PI );
+        
+        return this;
+
+    } );
+
+    enemy.bind( 'AfterUpdate', function( diffsecs ) {
+
+        // Shoot at the player as fast as possible
+        if ( this.diffshot > ( 1.0 / ENEMY_SHOOT_SPD ) ) {
+            this.shoot();
+            Crafty.audio.play( 'enemyShoot' );
+        }
+
+        return this;
+
+    } );
+
+    enemy.bind( 'Hit', function( hit ) {
+
+        // If collided with players bullet, then we die
+        if ( undefined != hit.parent && 'Player' == hit.parent.type ) {
+            Crafty.log( 'Hunter: killed' );
+
+            // TODO particle emitter explosion this.explode
+            // TODO count points (extra for killing hunter)
+
+            Crafty.audio.play( 'enemyExplode' ); // TODO special sound for killing hunter
+
+            this.destroy();
+
+        }
+
+        return this;
+
+    } );
+
+    Crafty.audio.play( 'hunterSpawn' );
+    Crafty.log( 'Hunter: spawned' );
+
+}
+
 function spawnPlayer() {
 
     var player = Crafty.e( 'Entity, Player, Keyboard' )
@@ -389,6 +486,7 @@ function spawnPlayer() {
     } );
 
     Crafty.log( 'Player: spawned' );
+    return player;
 
 }
 
@@ -425,12 +523,14 @@ function gameHeight() {
     return window.innerHeight;   
 }
 
+function gamePlayerEntity() {
+    return window.playerEntity;
+}
 
 function gameStart() {
     Crafty.log( 'Game: starting' );
 
-    spawnPlayer();
-    // spawnHunter();
+    window.playerEntity = spawnPlayer();
 
     // Start up the game loop
     // Run one immediately then start it up on a timer
@@ -466,9 +566,9 @@ function gameLoop() {
     spawnEnemy();
 
     // Spawn hunter randomly
-    var dice = parseInt( Math.random() * SPAWN_HUNTER_PROB );
-    if ( dice % SPAWN_HUNTER_PROB ) {
-        // spawnHunter();
+    var dice = parseInt( Math.random() * ( 1 / SPAWN_HUNTER_PROB ) );
+    if ( ! dice ) {
+        spawnHunter();
     }
 
 }
