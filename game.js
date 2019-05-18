@@ -225,7 +225,8 @@ function spawnEnemy() {
 
         // Shoot at the player as fast as possible
         if ( this.diffshot > ( 1.0 / ENEMY_SHOOT_SPD ) ) {
-            this.shoot()
+            this.shoot();
+            Crafty.audio.play( 'enemyShoot' );
         }
 
         // TODO kill once off screen
@@ -240,11 +241,15 @@ function spawnEnemy() {
         // TODO particle emitter explosion
         // TODO explosion noise
 
+        Crafty.audio.play( 'enemyExplode' );
+
         this.destroy();
+
         return this;
 
     } );
 
+    Crafty.audio.play( 'enemySpawn' );
     Crafty.log( 'Enemy: spawned (dir='+ dir +')' );
 
 }
@@ -313,6 +318,7 @@ function spawnPlayer() {
         if ( keyboard.isKeyDown( Crafty.keys.SPACE ) ) {
             if ( this.diffshot > ( 1.0 / PLAYER_SHOOT_SPD ) ) {
                 this.shoot();
+                Crafty.audio.play( 'playerShoot' );
             }
         }
 
@@ -322,7 +328,9 @@ function spawnPlayer() {
         Crafty.log( 'Player: killed' );
 
         // TODO particle emitter explosion
-        // TODO explosion noise
+        
+        Crafty.audio.play( 'playerExplode' );
+
         this.destroy();
 
         gameShowScore();
@@ -349,6 +357,16 @@ function gameInit() {
     );
 
     defineEntityComponent();
+
+    Crafty.audio.setChannels( 64 );
+
+    Crafty.audio.add( { // TODO convert these to OGG
+        playerShoot: [ 'sfx/playerShoot.wav' ],
+        playerExplode: [ 'sfx/playerExplode.wav' ],
+        enemySpawn: [ 'sfx/enemySpawn.wav' ],
+        enemyShoot: [ 'sfx/enemyShoot.wav' ],
+        enemyExplode: [ 'sfx/enemyExplode.wav' ],
+    } );
 
 }
 
