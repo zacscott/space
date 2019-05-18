@@ -523,14 +523,35 @@ function gameInit() {
 
     // Preload the game audio
     Crafty.audio.setChannels( 64 );
-    Crafty.audio.add( { // TODO convert these to OGG
-        playerShoot: [ 'sfx/playerShoot.wav' ],
-        playerExplode: [ 'sfx/playerExplode.wav' ],
-        enemyShoot: [ 'sfx/enemyShoot.wav' ],
-        enemyExplode: [ 'sfx/enemyExplode.wav' ],
-        hunterSpawn: [ 'sfx/hunterSpawn.wav' ],
-        hunterShoot: [ 'sfx/hunterShoot.wav' ],
-        hunterExplode: [ 'sfx/hunterExplode.wav' ]
+    Crafty.audio.add( {
+        playerShoot: [ 
+            'sfx/playerShoot.ogg',
+            'sfx/playerShoot.wav'
+        ],
+        playerExplode: [ 
+            'sfx/playerExplode.ogg',
+            'sfx/playerExplode.wav'
+        ],
+        enemyShoot: [ 
+            'sfx/enemyShoot.ogg',
+            'sfx/enemyShoot.wav'
+        ],
+        enemyExplode: [ 
+            'sfx/enemyExplode.ogg',
+            'sfx/enemyExplode.wav'
+        ],
+        hunterSpawn: [ 
+            'sfx/hunterSpawn.ogg',
+            'sfx/hunterSpawn.wav'
+        ],
+        hunterShoot: [ 
+            'sfx/hunterShoot.ogg',
+            'sfx/hunterShoot.wav'
+        ],
+        hunterExplode: [ 
+            'sfx/hunterExplode.ogg',
+            'sfx/hunterExplode.wav'
+        ]
     } );
 
 }
