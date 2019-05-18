@@ -32,7 +32,7 @@ ENEMY_WIDTH        = 50;    // in pixels
 ENEMY_HEIGHT       = 20;  
 
 ENEMY_SPD_MAX      = 35;    // in pixels per second
-ENEMY_SHOOT_SPD    = 0.75;  // shots per second
+ENEMY_SHOOT_SPD    = 0.66;  // shots per second
 
 ENEMY_SPD_MAX      = 60;    // in pixels per second
 HUNTER_SHOOT_SPD   = 0.33;  // shots per second
@@ -59,7 +59,9 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 
 // SPAWN RATES CONFIG  =============================================================================
 
-SPAWN_INTERVAL    = 1.73;  // enemy spawn rate in seconds
+SPAWN_INTERVAL    = 0.85;           // enemy spawn rate in seconds
+SPAWN_INTERVAL_MOBILE_MULT = 0.95;  // multiplier applied on mobile
+
 SPAWN_HUNTER_PROB = 0.1;   // probability a hunter will spawn along with normal enemy
 SPAWN_HUNTER_MAX  = 2;     // Max number of hunters to spawn at any given time 
 
@@ -700,8 +702,14 @@ function gameStart() {
 
     // Start up the game loop
     // Run one immediately then start it up on a timer
+    
     gameLoop();
-    window.gameLoopInterval = setInterval( gameLoop, 1000 * SPAWN_INTERVAL );
+
+    var spawnInterval = 1000 * SPAWN_INTERVAL;
+    if ( gameIsMobile() ) {
+        spawnInterval *= SPAWN_INTERVAL_MOBILE_MULT;
+    }
+    window.gameLoopInterval = setInterval( gameLoop, spawnInterval );
 
     // Initialise the scoreboard
     score = 0;
