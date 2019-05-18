@@ -1,7 +1,5 @@
 ( function() {
 
-// TODO hunter enemies which track player, rotating towards them, they should be white
-// TODO asteroids like roll around screen
 // TODO particle emitters on destroy
 // TODO points system
 // TODO convert sfx to OGG
@@ -451,6 +449,26 @@ function spawnPlayer() {
         // Limit the max speed of the player
         this.velocity = Math.min( this.velocity, PLAYER_SPD_MAX );
         this.velocity = Math.max( this.velocity, -PLAYER_SPD_MAX );
+
+        // If offscreen, roll around to the other side, like asteroids
+
+        var maxlength = this.w + this.h;
+
+        if ( this.x < -maxlength ) { // offscreen left
+            this.x = gameWidth() + maxlength;
+        }
+
+        if ( this.x > ( gameWidth() + maxlength ) ) { // offscreen right
+            this.x = -maxlength;
+        }
+
+        if ( this.y < -maxlength ) { // offscreen top
+            this.y = gameHeight() + maxlength;
+        }
+
+        if ( this.y > ( gameHeight() + maxlength ) ) { // offscreen bottom
+            this.y = -maxlength;
+        }
 
     } );
 
