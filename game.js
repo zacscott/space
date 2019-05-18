@@ -464,6 +464,9 @@ function spawnPlayer() {
     player.bind( 'UpdateBeforePhysics', function( diffsecs ) {
 
         var keyboard = Crafty.s( 'Keyboard' );
+        var mouse = Crafty.s( 'Mouse' );
+
+        var isTouch = gameIsMobile() && mouse.isButtonDown( 'LEFT' );
 
         // Handle rotation
 
@@ -487,9 +490,26 @@ function spawnPlayer() {
             this.diffv += diffv;
         } else if ( keyboard.isKeyDown( Crafty.keys.S ) || keyboard.isKeyDown( Crafty.keys.DOWN_ARROW ) ) {
             this.diffv += -diffv;
+        } else if ( isTouch ) {
+            this.diffv += diffv;
         } else {
             // Otherwise decay velocity
             this.diffv = -this.velocity * PLAYER_FRICTION;
+        }
+
+        // Handle touch controls
+        if ( isTouch ) {
+            if ( mouse.lastMouseEvent ) {
+                var x = mouse.lastMouseEvent.realX;
+                var y = mouse.lastMouseEvent.realY;
+
+                var deltaX = x - player.x;
+                var deltaY = y - player.y;
+                var rad = Math.atan2( deltaY, deltaX );
+
+                this.rotation = rad * ( 180 / Math.PI );
+
+            }
         }
 
         return this;
@@ -527,10 +547,13 @@ function spawnPlayer() {
     player.bind( 'AfterUpdate', function( diffsecs ) {
 
         var keyboard = Crafty.s( 'Keyboard' );
+        var mouse = Crafty.s( 'Mouse' );
 
         // Handle shooting
 
-        if ( keyboard.isKeyDown( Crafty.keys.SPACE ) ) {
+        var isTouch = gameIsMobile() && mouse.isButtonDown( 'LEFT' );
+
+        if ( keyboard.isKeyDown( Crafty.keys.SPACE ) || isTouch ) {
             if ( this.diffshot > ( 1.0 / PLAYER_SHOOT_SPD ) ) {
                 this.shoot();
                 Crafty.audio.play( 'playerShoot', 1, 0.75 );
@@ -585,6 +608,8 @@ function gameInit() {
         gameWidth(), gameHeight(), 
         document.getElementById('game') 
     );
+
+    Crafty.multitouch( false );
 
     gameLoadAudio();
 
@@ -647,6 +672,20 @@ function gameHeight() {
 
 function gamePlayerEntity() {
     return playerEntity;
+}
+
+ function gameIsMobile() {
+
+    var isMobile =  navigator.userAgent.match( /Android/i )
+        || navigator.userAgent.match( /webOS/i )
+        || navigator.userAgent.match( /iPhone/i )
+        || navigator.userAgent.match( /iPad/i )
+        || navigator.userAgent.match( /iPod/i )
+        || navigator.userAgent.match( /BlackBerry/i )
+        || navigator.userAgent.match( /Windows Phone/i );
+
+    return isMobile;
+
 }
 
 function gameStart() {
@@ -730,7 +769,13 @@ function gameLoop() {
 
 
 gameInit();
-alert( "Press WASD to move, SPACE to shoot" );
+
+if ( ! gameIsMobile() ) {
+    alert( "Press WASD to move, SPACE to shoot." );
+} else {
+    alert( "Touch where you want to fly." );
+}
+
 gameStart();
 
 
