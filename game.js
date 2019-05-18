@@ -64,39 +64,32 @@ function shoot( ent ) {console.log("shoot");
 
 function spawn_enemy() {
 
-    var types = [ 'Horizontal', 'Vertical', 'Hunter' ];
-    var type = types[Math.floor(Math.random()*types.length)];
-
-    var dirs = [ 1, -1 ];
+    var dirs = [ 'N', 'S', 'E', 'W' ];
     var dir = dirs[Math.floor(Math.random()*dirs.length)];
 
-    var enemy = Crafty.e( 'Enemy, 2D, Canvas, Color, Collision, ' + type )
+    var enemy = Crafty.e( 'Enemy, 2D, Canvas, Color, Collision' )
         .attr( {
-            x: 500,
+            x: 500,  // TODO spawn off screen, depending on direction
             y: 200,
             w: 50,
             h: 20
         } )
         .origin( 'center' );
 
-    type = 'Vertical';
+    dir = 'S';
 
-    if ( 'Horizontal' == type ) {
+    if ( 'N' == dir ) {
         enemy.color( 'blue' );
-        if ( dir > 0 ) {
-            enemy.rotation = 180;
-        } else {
-            enemy.rotation = 0;
-        }
-    } else if ( 'Vertical' == type ) {
+        enemy.rotation = 270;
+    } else if ( 'S' == dir ) {
+        enemy.color( 'blue' );
+        enemy.rotation = 90;
+    } else if ( 'E' == dir ) {
         enemy.color( 'green' );
-        if ( dir > 0 ) {
-            enemy.rotation = 270;
-        } else {
-            enemy.rotation = 90;
-        }
-    } else if ( 'Hunter' == type ) {
-        enemy.color( 'red' );
+        enemy.rotation = 0;
+    } else if ( 'W' == dir ) {
+        enemy.color( 'green' );
+        enemy.rotation = 180;
     }
 
     enemy.diffshot = 0;
@@ -105,15 +98,9 @@ function spawn_enemy() {
 
         var diffsecs = state.dt / 1000;
 
-        if ( 'Horizontal' == type ) {
-            this.x -= 75 * diffsecs * dir;
-        } else if ( 'Vertical' == type ) {
-            this.y -= 75 * diffsecs * dir;
-            // this.rotation = 270;
-        } else if ( 'Hunter' == type ) {
-            // TODO slowely aim toward player
-            // TODO move forward
-        }
+        var r = this.rotation * ( Math.PI / 180 );   // TODO surely this can be reused
+        this.x = this.x + ( 25 * Math.cos( r ) ) * diffsecs;
+        this.y = this.y + ( 25 * Math.sin( r ) ) * diffsecs;
 
         // Shoot at the player as fast as possible
         this.diffshot += diffsecs;
@@ -133,6 +120,7 @@ function spawn_enemy() {
 
         // TODO particle emitter explosion
         // TODO explosion noise
+
         this.destroy();
 
     } );
@@ -231,6 +219,6 @@ function spawn_player() {
 
 }
 
-Crafty.init( 800, 600, document.getElementById('game') );
+Crafty.init( window.innerWidth, window.innerHeight, document.getElementById('game') );
 spawn_player();
 spawn_enemy();
