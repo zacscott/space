@@ -62,7 +62,7 @@ BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixel
 SPAWN_INTERVAL    = 0.85;           // enemy spawn rate in seconds
 SPAWN_INTERVAL_MOBILE_MULT = 0.95;  // multiplier applied on mobile
 
-SPAWN_HUNTER_PROB = 0.1;   // probability a hunter will spawn along with normal enemy
+SPAWN_HUNTER_PROB = 0.15;  // probability a hunter will spawn along with normal enemy
 SPAWN_HUNTER_MAX  = 2;     // Max number of hunters to spawn at any given time 
 
 // END SPAWN RATES CONFIG  =========================================================================
