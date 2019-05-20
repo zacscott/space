@@ -199,7 +199,7 @@ function spawnExplosion( ent ) {
     // Configure particle emitter to explode
     particles.particles( {
         fastMode: true,
-        maxParticles: 50,
+        maxParticles: 30,
         size: 20,
         sizeRandom: 10,
         speed: 4,
