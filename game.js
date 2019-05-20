@@ -199,7 +199,7 @@ function spawnExplosion( ent ) {
     // Configure particle emitter to explode
     particles.particles( {
         fastMode: true,
-        maxParticles: 30,
+        maxParticles: 22,
         size: 20,
         sizeRandom: 10,
         speed: 4,
@@ -614,6 +614,13 @@ function gameInit() {
     );
 
     Crafty.multitouch( false );
+
+    // Add flag to DOM for mobile v desktop devices
+    if ( gameIsMobile() ) {
+        document.body.className = 'mobile';
+    } else {
+        document.body.className = 'desktop';
+    }
 
     gameLoadAudio();
 
