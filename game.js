@@ -615,6 +615,8 @@ function gameInit() {
 
     Crafty.multitouch( false );
 
+    // Crafty.viewport.scale(0.5);
+
     // Add flag to DOM for mobile v desktop devices
     if ( gameIsMobile() ) {
         document.body.className = 'mobile';
