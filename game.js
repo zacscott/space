@@ -9,7 +9,7 @@
 PLAYER_COLOR        = 'white';
 
 PLAYER_WIDTH        = 50;   // in pixels
-PLAYER_HEIGHT       = 20;  
+PLAYER_HEIGHT       = 20;
 
 PLAYER_SHOOT_SPD    = 10;   // shots per second
 
@@ -18,8 +18,8 @@ PLAYER_ACCEL        = 8;   // acceleration multiplier (larger = faster)
 PLAYER_FRICTION     = 4;    // friction multiplier (larger = faster)
 
 PLAYER_ROT_MAX      = 360;  // degrees per second
-PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster) 
-PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster) 
+PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster)
+PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster)
 
 // END PLAYER CONFIG  ==============================================================================
 
@@ -29,7 +29,7 @@ PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster)
 ENEMY_COLORS = [ 'red', 'green', 'blue' ];
 
 ENEMY_WIDTH        = 50;    // in pixels
-ENEMY_HEIGHT       = 20;  
+ENEMY_HEIGHT       = 20;
 
 ENEMY_SPD_MAX      = 35;    // in pixels per second
 ENEMY_SHOOT_SPD    = 0.33;  // shots per second
@@ -37,7 +37,7 @@ ENEMY_SHOOT_SPD    = 0.33;  // shots per second
 ENEMY_SPD_MAX      = 60;    // in pixels per second
 HUNTER_SHOOT_SPD   = 0.25;  // shots per second
 
-ENEMY_KILL_POINTS  = 250;   // points awarded for killing a normal enemy  
+ENEMY_KILL_POINTS  = 250;   // points awarded for killing a normal enemy
 HUNTER_KILL_POINTS = 1500;  // points awarded for killing a hunter
 
 // END ENEMY CONFIG  ===============================================================================
@@ -48,7 +48,7 @@ HUNTER_KILL_POINTS = 1500;  // points awarded for killing a hunter
 BULLET_COLOR  = 'yellow';
 
 BULLET_WIDTH    = 5;    // in pixels
-BULLET_HEIGHT   = 2;  
+BULLET_HEIGHT   = 2;
 
 BULLET_SPD_MAX  = 750;  // in pixels per second
 
@@ -63,7 +63,7 @@ SPAWN_INTERVAL    = 0.85;           // enemy spawn rate in seconds
 SPAWN_INTERVAL_MOBILE_MULT = 0.95;  // multiplier applied on mobile
 
 SPAWN_HUNTER_PROB = 0.15;  // probability a hunter will spawn along with normal enemy
-SPAWN_HUNTER_MAX  = 2;     // Max number of hunters to spawn at any given time 
+SPAWN_HUNTER_MAX  = 2;     // Max number of hunters to spawn at any given time
 
 // END SPAWN RATES CONFIG  =========================================================================
 
@@ -129,10 +129,10 @@ function defineEntityComponent() {
 
             var maxlength = this.w + this.h;
 
-            var isOnScreen = this.within( 
-                -maxlength, 
-                -maxlength, 
-                gameWidth() + ( maxlength * 2 ), 
+            var isOnScreen = this.within(
+                -maxlength,
+                -maxlength,
+                gameWidth() + ( maxlength * 2 ),
                 gameHeight() + ( maxlength * 2 )
             );
 
@@ -181,17 +181,19 @@ function defineEntityComponent() {
 function spawnExplosion( ent ) {
 
     var particles = Crafty.e( '2D, Canvas, Particles' );
-    
+
     particles.x = ent.x;
     particles.y = ent.y;
     particles.w = 500; particles.h = 500;
 
     // parse the entities color, so we can match it
-    var color = [ 255, 255, 255, 1.0 ];
+    var colorStart = [ 255, 255, 255, 1.0 ];
+    var colorEnd = [ 255, 255, 255, 1.0 ];
     var cssColor = ent.color();
     var matches = cssColor.match( /^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i );
     if ( matches ) {
-        color = [ matches[1], matches[2], matches[3], 1.0 ];
+        colorStart = [ matches[1], matches[2], matches[3], 1.0 ];
+        colorEnd = [ matches[1], matches[2], matches[3], 0.0 ];
     }
 
     // Configure particle emitter to explode
@@ -204,10 +206,10 @@ function spawnExplosion( ent ) {
         speedRandom: 1.2,
         angle: 0,
         angleRandom: 360,
-        startColour: color,
+        startColour: colorStart,
         startColourRandom: [0, 0, 0, 0],
-        endColour: [0, 0, 0, 0],
-        endColourRandom: [48, 48, 48, 0],
+        endColour: colorEnd,
+        endColourRandom: [0, 0, 0, 0],
         spread: 40,
         lifeSpan: 30,
         lifeSpanRandom: 0,
@@ -285,7 +287,7 @@ function spawnEnemy() {
 
     // Set enemy params based on direction, spawn point etc
     if ( 'N' == dir ) {
-        
+
         enemy.rotation = 270;
         enemy.x = parseInt( Math.random() * gameWidth() );
         enemy.y = gameHeight() + ENEMY_HEIGHT;
@@ -323,7 +325,7 @@ function spawnEnemy() {
             Crafty.log( 'Enemy: despawned' );
             this.destroy();
         }
-        
+
         return this;
 
     } );
@@ -335,7 +337,7 @@ function spawnEnemy() {
             Crafty.log( 'Enemy: killed' );
 
             spawnExplosion( this );
-            
+
             gameScorePoints( ENEMY_KILL_POINTS );
 
             Crafty.audio.play( 'enemyExplode' );
@@ -372,7 +374,7 @@ function spawnHunter() {
 
     // Set enemy params based on direction, spawn point etc
     if ( 'N' == dir ) {
-        
+
         enemy.rotation = 270;
         enemy.x = parseInt( Math.random() * gameWidth() );
         enemy.y = gameHeight() + ENEMY_HEIGHT;
@@ -406,7 +408,7 @@ function spawnHunter() {
         var rad = Math.atan2( deltaY, deltaX );
 
         this.rotation = rad * ( 180 / Math.PI );
-        
+
         return this;
 
     } );
@@ -430,7 +432,7 @@ function spawnHunter() {
             Crafty.log( 'Hunter: killed' );
 
             spawnExplosion( this );
-            
+
             gameScorePoints( HUNTER_KILL_POINTS );
 
             Crafty.audio.play( 'hunterExplode' );
@@ -482,7 +484,7 @@ function spawnPlayer() {
             this.diffr *= 1.0 - ( PLAYER_ROT_FRICTION * diffsecs );
         }
 
-        this.diffr = Math.min( this.diffr, PLAYER_ROT_MAX ); 
+        this.diffr = Math.min( this.diffr, PLAYER_ROT_MAX );
         this.diffr = Math.max( this.diffr, -PLAYER_ROT_MAX );
 
         // Handle velocity & momentum
@@ -566,7 +568,7 @@ function spawnPlayer() {
 
     player.bind( 'Hit', function( hit ) {
         Crafty.log( 'Player: killed' );
-        
+
         Crafty.audio.play( 'playerExplode' );
 
         this.destroy();
@@ -606,9 +608,9 @@ function spawnScoreboard() {
 function gameInit() {
     Crafty.log( 'Game: initialising' );
 
-    Crafty.init( 
-        gameWidth(), gameHeight(), 
-        document.getElementById('game') 
+    Crafty.init(
+        gameWidth(), gameHeight(),
+        document.getElementById('game')
     );
 
     Crafty.multitouch( false );
@@ -623,31 +625,31 @@ function gameInit() {
 function gameLoadAudio() {
 
     var sfx = {
-        playerShoot: [ 
+        playerShoot: [
             'sfx/playerShoot.ogg',
             'sfx/playerShoot.wav'
         ],
-        playerExplode: [ 
+        playerExplode: [
             'sfx/playerExplode.ogg',
             'sfx/playerExplode.wav'
         ],
-        enemyShoot: [ 
+        enemyShoot: [
             'sfx/enemyShoot.ogg',
             'sfx/enemyShoot.wav'
         ],
-        enemyExplode: [ 
+        enemyExplode: [
             'sfx/enemyExplode.ogg',
             'sfx/enemyExplode.wav'
         ],
-        hunterSpawn: [ 
+        hunterSpawn: [
             'sfx/hunterSpawn.ogg',
             'sfx/hunterSpawn.wav'
         ],
-        hunterShoot: [ 
+        hunterShoot: [
             'sfx/hunterShoot.ogg',
             'sfx/hunterShoot.wav'
         ],
-        hunterExplode: [ 
+        hunterExplode: [
             'sfx/hunterExplode.ogg',
             'sfx/hunterExplode.wav'
         ]
@@ -665,11 +667,11 @@ function gameLoadAudio() {
 }
 
 function gameWidth() {
-    return window.innerWidth;    
+    return window.innerWidth;
 }
 
 function gameHeight() {
-    return window.innerHeight;   
+    return window.innerHeight;
 }
 
 function gamePlayerEntity() {
@@ -702,7 +704,7 @@ function gameStart() {
 
     // Start up the game loop
     // Run one immediately then start it up on a timer
-    
+
     gameLoop();
 
     var spawnInterval = 1000 * SPAWN_INTERVAL;
@@ -724,8 +726,8 @@ function gameRestart() {
     clearInterval( window.gameLoopInterval );
 
     // Delete all entities to reset the game
-    Crafty( 'Entity' ).each( function() { 
-        this.destroy(); 
+    Crafty( 'Entity' ).each( function() {
+        this.destroy();
     } );
 
     // Start the game over again
@@ -762,7 +764,7 @@ function gameLoop() {
     // Spawn hunter randomly, up to the maximum
     var dice = parseInt( Math.random() * ( 1 / SPAWN_HUNTER_PROB ) );
     if ( ! dice ) {
-        
+
         var hunters = Crafty( 'Hunter' );
         if ( hunters.length < SPAWN_HUNTER_MAX ) {
             spawnHunter();
