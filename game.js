@@ -8,17 +8,17 @@
 
 PLAYER_COLOR        = 'white';
 
-PLAYER_WIDTH        = 50;   // in pixels
-PLAYER_HEIGHT       = 20;
+PLAYER_WIDTH        = 30;   // in pixels
+PLAYER_HEIGHT       = 12;
 
 PLAYER_SHOOT_SPD    = 10;   // shots per second
 
-PLAYER_SPD_MAX      = 450;  // in pixels per second
-PLAYER_ACCEL        = 8;   // acceleration multiplier (larger = faster)
+PLAYER_SPD_MAX      = 300;  // in pixels per second
+PLAYER_ACCEL        = 8;    // acceleration multiplier (larger = faster)
 PLAYER_FRICTION     = 4;    // friction multiplier (larger = faster)
 
-PLAYER_ROT_MAX      = 360;  // degrees per second
-PLAYER_ROT_ACCEL    = 2;    // rotation acceleration multiplier (larger = faster)
+PLAYER_ROT_MAX      = 270;  // degrees per second
+PLAYER_ROT_ACCEL    = 1.2;  // rotation acceleration multiplier (larger = faster)
 PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster)
 
 // END PLAYER CONFIG  ==============================================================================
@@ -28,13 +28,13 @@ PLAYER_ROT_FRICTION = 8;    // rotation friction multiplier (larger = faster)
 
 ENEMY_COLORS = [ 'red', 'green', 'blue' ];
 
-ENEMY_WIDTH        = 50;    // in pixels
-ENEMY_HEIGHT       = 20;
+ENEMY_WIDTH        = 30;    // in pixels
+ENEMY_HEIGHT       = 12;
 
-ENEMY_SPD_MAX      = 35;    // in pixels per second
+ENEMY_SPD_MAX      = 20;    // in pixels per second
 ENEMY_SHOOT_SPD    = 0.33;  // shots per second
 
-ENEMY_SPD_MAX      = 60;    // in pixels per second
+HUNTER_SPD_MAX     = 30;    // in pixels per second
 HUNTER_SHOOT_SPD   = 0.25;  // shots per second
 
 ENEMY_KILL_POINTS  = 250;   // points awarded for killing a normal enemy
@@ -47,19 +47,19 @@ HUNTER_KILL_POINTS = 1500;  // points awarded for killing a hunter
 
 BULLET_COLOR  = 'yellow';
 
-BULLET_WIDTH    = 5;    // in pixels
+BULLET_WIDTH    = 3;    // in pixels
 BULLET_HEIGHT   = 2;
 
 BULLET_SPD_MAX  = 750;  // in pixels per second
 
-BULLET_BUFFER   = 25;   // distance between parent ent and spawn point, in pixels
+BULLET_BUFFER   = 10;   // distance between parent ent and spawn point, in pixels
 
 // END ENEMY CONFIG  ===============================================================================
 
 
 // SPAWN RATES CONFIG  =============================================================================
 
-SPAWN_INTERVAL    = 0.85;           // enemy spawn rate in seconds
+SPAWN_INTERVAL    = 0.9;            // enemy spawn rate in seconds
 SPAWN_INTERVAL_MOBILE_MULT = 0.95;  // multiplier applied on mobile
 
 SPAWN_HUNTER_PROB = 0.15;  // probability a hunter will spawn along with normal enemy
@@ -199,9 +199,9 @@ function spawnExplosion( ent ) {
     // Configure particle emitter to explode
     particles.particles( {
         fastMode: true,
-        maxParticles: 22,
-        size: 20,
-        sizeRandom: 10,
+        maxParticles: 16,
+        size: ENEMY_WIDTH/2,
+        sizeRandom: ENEMY_WIDTH/4,
         speed: 4,
         speedRandom: 1.2,
         angle: 0,
@@ -210,7 +210,7 @@ function spawnExplosion( ent ) {
         startColourRandom: [0, 0, 0, 0],
         endColour: colorEnd,
         endColourRandom: [0, 0, 0, 0],
-        spread: 40,
+        spread: ENEMY_WIDTH,
         lifeSpan: 30,
         lifeSpanRandom: 0,
         duration: 40,
@@ -365,7 +365,7 @@ function spawnHunter() {
         .attr( {
             w: ENEMY_WIDTH,
             h: ENEMY_HEIGHT,
-            velocity: ENEMY_SPD_MAX
+            velocity: HUNTER_SPD_MAX
         } )
         .origin( 'center' );
 
@@ -470,7 +470,8 @@ function spawnPlayer() {
         var keyboard = Crafty.s( 'Keyboard' );
         var mouse = Crafty.s( 'Mouse' );
 
-        var isTouch = gameIsMobile() && mouse.isButtonDown( 'LEFT' );
+        // var isTouch = gameIsMobile() && mouse.isButtonDown( 'LEFT' );
+        var isTouch = mouse.isButtonDown( 'LEFT' );
 
         // Handle rotation
 
@@ -555,7 +556,8 @@ function spawnPlayer() {
 
         // Handle shooting
 
-        var isTouch = gameIsMobile() && mouse.isButtonDown( 'LEFT' );
+        // var isTouch = gameIsMobile() && mouse.isButtonDown( 'LEFT' );
+        var isTouch = mouse.isButtonDown( 'LEFT' );
 
         if ( keyboard.isKeyDown( Crafty.keys.SPACE ) || isTouch ) {
             if ( this.diffshot > ( 1.0 / PLAYER_SHOOT_SPD ) ) {
@@ -790,7 +792,8 @@ function gameLoop() {
 gameInit();
 
 if ( ! gameIsMobile() ) {
-    alert( "Press WASD to move, SPACE to shoot." );
+    alert( "Click where you want to fly." );
+    // alert( "Press WASD to move, SPACE to shoot." );
 } else {
     alert( "Touch where you want to fly." );
 }
